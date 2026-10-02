@@ -7,6 +7,8 @@ import { Experience } from './scene/Experience'
 import { Chapters } from './ui/Chapters'
 import { DebugHud } from './ui/DebugHud'
 import { Loader } from './ui/Loader'
+import { ProjectPanel } from './ui/ProjectPanel'
+import { ViewAllGrid } from './ui/ViewAllGrid'
 
 const debug = new URLSearchParams(window.location.search).has('debug')
 
@@ -21,6 +23,8 @@ export default function App() {
     <>
       <Experience timeline={timeline} />
       <Chapters timeline={timeline} />
+      <ProjectPanel />
+      <ViewAllGrid />
       <Loader />
       {debug && <DebugHud timeline={timeline} />}
     </>

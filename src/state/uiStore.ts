@@ -1,13 +1,29 @@
 import { create } from 'zustand'
+import type { WorkCategory } from '../content/types'
 
 /** Discrete UI state. Only changes on meaningful events, so React re-renders stay rare. */
 interface UiState {
   /** Index of the chapter the viewer is currently at. */
   active: number
   setActive: (i: number) => void
+
   /** True once textures are loaded and shaders compiled — the loading screen can leave. */
   ready: boolean
   setReady: () => void
+
+  /** The work whose project panel is open (the camera focuses its moon). */
+  openWorkId: string | null
+  openWork: (id: string) => void
+  closeWork: () => void
+
+  /** Category whose "view all" grid is open. */
+  viewAll: WorkCategory | null
+  openViewAll: (c: WorkCategory) => void
+  closeViewAll: () => void
+
+  /** Moon under the pointer (id), for highlight + cursor. */
+  hovered: string | null
+  setHovered: (id: string | null) => void
 }
 
 export const useUi = create<UiState>((set) => ({
@@ -15,4 +31,16 @@ export const useUi = create<UiState>((set) => ({
   setActive: (active) => set({ active }),
   ready: false,
   setReady: () => set({ ready: true }),
+  openWorkId: null,
+  // Opening a work from the grid replaces the grid with the panel.
+  openWork: (id) => set({ openWorkId: id, viewAll: null }),
+  closeWork: () => set({ openWorkId: null }),
+  viewAll: null,
+  openViewAll: (viewAll) => set({ viewAll, openWorkId: null }),
+  closeViewAll: () => set({ viewAll: null }),
+  hovered: null,
+  setHovered: (hovered) => set({ hovered }),
 }))
+
+/** True while any modal layer (panel or grid) is open. */
+export const isModalOpen = (s: Pick<UiState, 'openWorkId' | 'viewAll'>) => !!s.openWorkId || !!s.viewAll

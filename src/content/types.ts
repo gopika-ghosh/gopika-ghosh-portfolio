@@ -55,10 +55,80 @@ export interface Chapter {
   /** For `works` chapters: which category of works orbits this planet. */
   category?: WorkCategory
   /**
+   * For `works` chapters: at most this many moons orbit the planet (default 8).
+   * Beyond that, a "+N" moon opens a grid of every work in the category.
+   */
+  maxVisibleWorks?: number
+  /**
    * Optional pacing, in screen-heights of scrolling.
    * `travel` = scroll spent flying here from the previous stop.
    * `dwell`  = scroll spent parked here while the text is read (min 1).
    */
   travel?: number
   dwell?: number
+}
+
+/**
+ * A video: paste a YouTube or Vimeo link, or the path of an .mp4 in /public.
+ * Videos only load when the viewer presses play.
+ */
+export interface VideoSource {
+  url: string
+  /** Still image shown before playing (path in /public). Defaults to the work's thumbnail. */
+  poster?: string
+}
+
+/** One piece of work. Each work becomes a moon orbiting its category's planet. */
+export interface Work {
+  /** Unique, URL-safe id (also used for the image folder name). */
+  id: string
+  title: string
+  category: WorkCategory
+  /** Your role, e.g. "Lead product designer". */
+  role: string
+  year: number
+  /** One line, shown in lists and on the moon label. */
+  summary: string
+  /** Full description for the project panel. Separate paragraphs with a blank line. */
+  description: string
+  /** Square-ish image for the moon label and grids (path in /public). */
+  thumbnail: string
+  /** Gallery images for the project panel (paths in /public). */
+  images: string[]
+  video?: VideoSource
+  externalLink?: { label: string; url: string }
+  /** Featured works get slightly larger moons and are listed first. */
+  featured?: boolean
+  /** Optional short tags, e.g. ["Fintech", "iOS"]. */
+  tags?: string[]
+}
+
+export interface Role {
+  company: string
+  title: string
+  /** e.g. "2021" */
+  start: string
+  /** e.g. "2024" or "Present" */
+  end: string
+  location?: string
+  summary: string
+}
+
+export interface SkillGroup {
+  name: string
+  items: string[]
+}
+
+export interface Testimonial {
+  quote: string
+  name: string
+  /** e.g. "Head of Product, Lumen" */
+  title: string
+}
+
+export interface Award {
+  title: string
+  /** Who gave it, e.g. "Awwwards" */
+  by: string
+  year: number
 }

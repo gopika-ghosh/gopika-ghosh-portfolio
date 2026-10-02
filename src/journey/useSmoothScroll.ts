@@ -4,7 +4,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { scrollStore } from './scrollStore'
 import { activeIndex, locate, type Segment, type Timeline } from './timeline'
-import { useUi } from '../state/uiStore'
+import { isModalOpen, useUi } from '../state/uiStore'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -66,8 +66,14 @@ export function useSmoothScroll(timeline: Timeline) {
     history.scrollRestoration = 'manual'
     window.scrollTo(0, 0)
     lenis = new Lenis({ autoRaf: false, lerp: 0.085, wheelMultiplier: 0.9 })
-    if (!useUi.getState().ready) lenis.stop()
-    const unsubReady = useUi.subscribe((s) => s.ready && lenis?.start())
+    // Scrolling runs only once the scene is ready, and pauses while a project panel or grid is open.
+    const syncLock = () => {
+      const s = useUi.getState()
+      if (s.ready && !isModalOpen(s)) lenis?.start()
+      else lenis?.stop()
+    }
+    syncLock()
+    const unsubLock = useUi.subscribe(syncLock)
     const tick = (time: number) => lenis!.raf(time * 1000)
     gsap.ticker.add(tick, false, true) // prioritised: scroll updates before the scene renders
     gsap.ticker.lagSmoothing(0)
@@ -101,11 +107,16 @@ export function useSmoothScroll(timeline: Timeline) {
 
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return
+      // Space on a focused button or link should press it, not move the journey.
+      if (e.key === ' ' && e.target instanceof Element && e.target.closest('button, a, [role="button"]')) return
       const forward = ['ArrowDown', 'PageDown'].includes(e.key) || (e.key === ' ' && !e.shiftKey)
       const back = ['ArrowUp', 'PageUp'].includes(e.key) || (e.key === ' ' && e.shiftKey)
       if (!forward && !back) return
+      // Leave keys alone inside panels/grids (scrolling text, pressing buttons).
+      const ui = useUi.getState()
+      if (isModalOpen(ui)) return
       e.preventDefault()
-      if (!useUi.getState().ready) return
+      if (!ui.ready) return
       // Next/previous arrival point, with a tolerance so a glide that settles a hair
       // short of a stop doesn't count as "still travelling" towards it.
       const EPS = 0.02
@@ -122,7 +133,7 @@ export function useSmoothScroll(timeline: Timeline) {
       window.removeEventListener('resize', onResize)
       window.removeEventListener('keydown', onKey)
       window.clearTimeout(snapTimer)
-      unsubReady()
+      unsubLock()
       gsap.ticker.remove(tick)
       lenis?.destroy()
       lenis = null

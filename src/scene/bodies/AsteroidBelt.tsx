@@ -116,7 +116,7 @@ function Rocks({ geometry, material, count, seed, spread, centre = 0, sizes, thi
 }
 
 /** A lumpy rock: a subdivided icosahedron pushed in and out by smooth pseudo-noise. */
-function createRockGeometry(detail: number, seed: number) {
+export function createRockGeometry(detail: number, seed: number) {
   const rand = seeded(seed)
   const waves = Array.from({ length: 6 }, () => ({
     k: new Vector3(rand() - 0.5, rand() - 0.5, rand() - 0.5).normalize().multiplyScalar(1.5 + rand() * 3),

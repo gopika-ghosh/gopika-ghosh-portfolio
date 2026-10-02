@@ -1,5 +1,5 @@
 import { MathUtils, Vector2, Vector3 } from 'three'
-import { bodies } from '../config/bodies'
+import { bodies, type BodyId } from '../config/bodies'
 import type { Station } from '../config/stations'
 import { bodyAngle, bodyPosition } from '../scene/orbits'
 
@@ -29,6 +29,14 @@ export const createPose = (): Pose => ({
   screen: new Vector2(),
   fov: 45,
 })
+
+/**
+ * Radius (scene units) that a body's shot must fit, set by systems around it —
+ * e.g. a planet's moons. Shots back off automatically so the whole system is framed.
+ */
+export const frameExtent: Partial<Record<BodyId, number>> = {}
+/** Camera distance per unit of frame extent. */
+const EXTENT_DISTANCE = 2.05
 
 const UP = new Vector3(0, 1, 0)
 const _anchor = new Vector3()
@@ -69,7 +77,10 @@ export function stationPose(station: Station, portrait: boolean, out: Pose): Pos
     .multiplyScalar(Math.cos(el))
     .addScaledVector(UP, Math.sin(el))
 
-  out.position.copy(out.focus).addScaledVector(_dir, station.distance * body.radius)
+  // The body sits off-centre (screen offset), so the far side has less room: back off accordingly.
+  const room = 1 - Math.min(0.6, Math.max(Math.abs(out.screen.x), Math.abs(out.screen.y)))
+  const distance = Math.max(station.distance * body.radius, ((frameExtent[station.body] ?? 0) * EXTENT_DISTANCE) / room)
+  out.position.copy(out.focus).addScaledVector(_dir, distance)
   return out
 }
 

@@ -6,6 +6,7 @@ import type { Chapter } from './types'
  * - Reorder entries to reorder the journey.
  * - Change `station` to send the camera somewhere else (see StationId in types.ts).
  * - `travel` / `dwell` tune pacing in screen-heights (defaults: 1 and 1.4).
+ * - `works` chapters show every work in `category` as moons (see works.ts).
  */
 export const chapters: Chapter[] = [
   {
@@ -40,6 +41,7 @@ export const chapters: Chapter[] = [
     station: 'earth',
     kind: 'works',
     category: 'uiux',
+    dwell: 1.6,
     navLabel: 'Earth',
     heading: 'UI/UX Design',
     intro: 'Human-centred products, from first sketch to shipped interface.',
@@ -50,6 +52,7 @@ export const chapters: Chapter[] = [
     station: 'mars',
     kind: 'works',
     category: 'graphic',
+    dwell: 1.6,
     navLabel: 'Mars',
     heading: 'Graphic Design',
     intro: 'Identities, editorial and campaigns with a point of view.',
@@ -67,6 +70,7 @@ export const chapters: Chapter[] = [
     station: 'jupiter',
     kind: 'works',
     category: 'video',
+    dwell: 1.6,
     navLabel: 'Jupiter',
     heading: 'Video Editing',
     intro: 'Rhythm, pacing and story — edits that hold attention.',
