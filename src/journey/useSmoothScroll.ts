@@ -62,9 +62,10 @@ export function useSmoothScroll(timeline: Timeline) {
     }
     window.addEventListener('resize', onResize)
 
-    // Always start the journey at the beginning, and hold scrolling until the scene is ready.
+    // Start at the beginning (or at a #chapter deep link), and hold scrolling until the scene is ready.
     history.scrollRestoration = 'manual'
     window.scrollTo(0, 0)
+    const linked = timeline.stops.find((s) => `#${s.chapter.id}` === window.location.hash && s.index > 0)
     lenis = new Lenis({ autoRaf: false, lerp: 0.085, wheelMultiplier: 0.9 })
     // Scrolling runs only once the scene is ready, and pauses while a project panel or grid is open.
     const syncLock = () => {
@@ -73,7 +74,17 @@ export function useSmoothScroll(timeline: Timeline) {
       else lenis?.stop()
     }
     syncLock()
-    const unsubLock = useUi.subscribe(syncLock)
+    let jumped = false
+    const unsubLock = useUi.subscribe((s) => {
+      syncLock()
+      // Deep link: once the scene is ready, appear at the linked stop without a long flight.
+      if (s.ready && linked && !jumped) {
+        jumped = true
+        lenis?.scrollTo(linked.arrive * scrollStore.unit, { immediate: true, force: true })
+        // An immediate jump doesn't reliably emit Lenis's scroll event; sync from the real position.
+        sync(window.scrollY)
+      }
+    })
     const tick = (time: number) => lenis!.raf(time * 1000)
     gsap.ticker.add(tick, false, true) // prioritised: scroll updates before the scene renders
     gsap.ticker.lagSmoothing(0)
@@ -96,11 +107,21 @@ export function useSmoothScroll(timeline: Timeline) {
       if (best > 0.005 && best < SNAP_RANGE) glideTo(target, 0.7 + best * 1.5)
     }
 
-    lenis.on('scroll', (l: Lenis) => {
-      scrollStore.u = l.scroll / scrollStore.unit
+    /** Push a scroll position (px) into the journey: camera input, active chapter, address. */
+    const sync = (y: number) => {
+      scrollStore.u = y / scrollStore.unit
       ScrollTrigger.update()
       const i = activeIndex(locate(scrollStore.u, timeline, seg))
-      if (i !== useUi.getState().active) useUi.getState().setActive(i)
+      if (i !== useUi.getState().active) {
+        useUi.getState().setActive(i)
+        // Keep the address shareable without adding history entries.
+        const id = timeline.stops[i].chapter.id
+        history.replaceState(null, '', i === 0 ? window.location.pathname + window.location.search : `#${id}`)
+      }
+    }
+
+    lenis.on('scroll', (l: Lenis) => {
+      sync(l.scroll)
       window.clearTimeout(snapTimer)
       snapTimer = window.setTimeout(snap, SNAP_DELAY)
     })
@@ -129,9 +150,18 @@ export function useSmoothScroll(timeline: Timeline) {
     }
     window.addEventListener('keydown', onKey)
 
+    // In-page hash changes (#links, editing the address) would make the browser jump to
+    // the section's top edge, which is mid-flight. Glide to the stop itself instead.
+    const onHash = () => {
+      const stop = timeline.stops.find((s) => `#${s.chapter.id}` === window.location.hash)
+      if (stop && useUi.getState().ready) glideTo(stop.arrive)
+    }
+    window.addEventListener('hashchange', onHash)
+
     return () => {
       window.removeEventListener('resize', onResize)
       window.removeEventListener('keydown', onKey)
+      window.removeEventListener('hashchange', onHash)
       window.clearTimeout(snapTimer)
       unsubLock()
       gsap.ticker.remove(tick)

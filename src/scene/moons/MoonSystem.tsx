@@ -89,6 +89,8 @@ function Moon({ slot, category, map, active, chapterIndex, planetRadius, moreCou
   const body = useRef<Group>(null)
   const label = useRef<HTMLDivElement>(null)
   const angle = useRef(slot.phase)
+  // True while the pointer is over this moon's DOM label (so the 3D pointer-out doesn't clear hover).
+  const overLabel = useRef(false)
   const motion = useRef({ speed: 1, scale: 1, glow: 0.5, label: 0 })
 
   // Orbit plane: tilted by `inclination` about an axis at angle `node` in the equatorial plane.
@@ -157,6 +159,7 @@ function Moon({ slot, category, map, active, chapterIndex, planetRadius, moreCou
     document.body.style.cursor = 'pointer'
   }
   const onOut = () => {
+    if (overLabel.current) return
     if (useUi.getState().hovered === key) useUi.getState().setHovered(null)
     document.body.style.cursor = ''
   }
@@ -197,8 +200,14 @@ function Moon({ slot, category, map, active, chapterIndex, planetRadius, moreCou
                 type="button"
                 tabIndex={-1}
                 onClick={(e) => onClick(e)}
-                onPointerEnter={() => useUi.getState().setHovered(key)}
-                onPointerLeave={() => useUi.getState().hovered === key && useUi.getState().setHovered(null)}
+                onPointerEnter={() => {
+                  overLabel.current = true
+                  useUi.getState().setHovered(key)
+                }}
+                onPointerLeave={() => {
+                  overLabel.current = false
+                  if (useUi.getState().hovered === key) useUi.getState().setHovered(null)
+                }}
                 className="group flex items-center gap-2 rounded-full border border-white/10 bg-black/45 py-1 pr-3 pl-1 whitespace-nowrap backdrop-blur-sm transition-colors hover:border-sun/60"
               >
                 {work ? (

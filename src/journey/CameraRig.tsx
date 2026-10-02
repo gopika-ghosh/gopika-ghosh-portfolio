@@ -4,6 +4,7 @@ import { MathUtils, Vector3, type PerspectiveCamera } from 'three'
 import { easing } from 'maath'
 import { stations } from '../config/stations'
 import { cameraMotion } from './cameraMotion'
+import { pointer } from './pointer'
 import { blendPoses, createPose, easeFlight, stationPose } from './cameraPath'
 import { scrollStore } from './scrollStore'
 import { locate, type Segment, type Timeline } from './timeline'
@@ -28,6 +29,12 @@ const _prev = new Vector3()
 const focusPose = createPose()
 const _moonPos = new Vector3()
 const _away = new Vector3()
+const _sway = new Vector3()
+const _side = new Vector3()
+
+/** Idle drift and pointer parallax, as fractions of the distance to what we're looking at. */
+const DRIFT = 0.008
+const PARALLAX = 0.022
 
 /** Seconds to fly into / out of a moon close-up. */
 const FOCUS_SMOOTH = 0.55
@@ -58,6 +65,7 @@ export function CameraRig({ timeline }: { timeline: Timeline }) {
   const screen = useRef({ x: 0, y: 0 })
   const started = useRef(false)
   const focusK = useRef({ k: 0 })
+  const lean = useRef({ x: 0, y: 0 })
 
   useFrame(({ camera, size }, dt) => {
     const cam = camera as PerspectiveCamera
@@ -103,6 +111,20 @@ export function CameraRig({ timeline }: { timeline: Timeline }) {
       target.screen.lerp(focusPose.screen, k)
       target.fov = MathUtils.lerp(target.fov, focusPose.fov, k)
     }
+
+    // 2c. Life: a slow idle drift plus a gentle lean toward the pointer, both tiny and
+    // scaled by distance so they feel the same at every stop. Faded out mid-flight.
+    easing.damp(lean.current, 'x', pointer.x, 0.8, dt)
+    easing.damp(lean.current, 'y', pointer.y, 0.8, dt)
+    const settled = seg.from === seg.to ? 1 : Math.abs(seg.t - 0.5) * 2
+    const reach = target.position.distanceTo(target.focus) * settled
+    const t = performance.now() / 1000
+    _side.subVectors(target.focus, target.position).cross(UP).normalize()
+    _sway
+      .copy(_side)
+      .multiplyScalar((Math.sin(t * 0.13) * DRIFT + lean.current.x * PARALLAX) * reach)
+      .addScaledVector(UP, (Math.sin(t * 0.17 + 1.3) * DRIFT * 0.6 + lean.current.y * PARALLAX * 0.6) * reach)
+    target.position.add(_sway)
 
     // Portrait screens are narrow: widen the vertical FOV so the horizontal view matches a square one.
     let fov = target.fov

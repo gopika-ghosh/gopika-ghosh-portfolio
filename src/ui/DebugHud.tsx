@@ -19,7 +19,7 @@ export function DebugHud({ timeline }: { timeline: Timeline }) {
   }, [])
 
   return (
-    <div className="fixed top-3 right-3 z-50 rounded bg-black/70 px-3 py-2 font-mono text-xs text-white/80">
+    <div className="fixed right-3 bottom-3 z-50 rounded bg-black/70 px-3 py-2 font-mono text-xs text-white/80">
       u <span ref={uRef} /> / {timeline.max.toFixed(2)} · stop {active} ({timeline.stops[active].chapter.station})
     </div>
   )

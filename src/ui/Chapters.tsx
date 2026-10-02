@@ -32,6 +32,9 @@ export function Chapters({ timeline }: { timeline: Timeline }) {
 /** Height in timeline units (1 unit = one viewport height, see useSmoothScroll). */
 const units = (n: number): CSSProperties => ({ height: `calc(${n} * var(--unit, 100vh))` })
 
+/** Stagger index for a revealed element (see [data-reveal] in index.css). */
+const r = (i: number) => ({ 'data-reveal': '', style: { '--i': i } as CSSProperties })
+
 function ChapterSection({ stop }: { stop: Stop }) {
   const { chapter, travel, dwell } = stop
   // Wide system shots put the system below the intro text and above the contact text.
@@ -42,12 +45,20 @@ function ChapterSection({ stop }: { stop: Stop }) {
         ? 'items-end justify-center pb-[10vh] text-center md:pb-[10vh]'
         : 'items-end pb-10 md:items-center md:pb-0'
 
+  // Content reveals (staggered) when this becomes the active stop, and fades as the camera leaves.
+  const shown = useUi((s) => s.ready && s.active === stop.index)
+
   return (
-    <section id={chapter.id} aria-labelledby={`${chapter.id}-heading`} className="pointer-events-none relative">
+    <section
+      aria-labelledby={`${chapter.id}-heading`}
+      data-state={shown ? 'in' : 'out'}
+      className="pointer-events-none relative"
+    >
       {/* Scroll spent flying here. */}
       <div style={units(travel)} />
-      {/* Scroll spent parked here: the content pins for (dwell − 1) units. */}
-      <div style={units(dwell)}>
+      {/* Scroll spent parked here: the content pins for (dwell − 1) units. The #anchor lives
+          here (not on the section) so native #links land exactly where the camera arrives. */}
+      <div id={chapter.id} style={units(dwell)}>
         <div className={`sticky top-0 flex px-6 md:px-16 ${layout}`} style={units(1)}>
           <Content chapter={chapter} index={stop.index} />
         </div>
@@ -105,14 +116,21 @@ function Content({ chapter, index }: { chapter: Chapter; index: number }) {
 function Panel({ chapter, index, wide, children }: { chapter: Chapter; index: number; wide?: boolean; children?: ReactNode }) {
   return (
     <div className={`pointer-events-auto w-full ${wide ? 'max-w-xl' : 'max-w-md'}`}>
-      <p className="mb-3 text-xs tracking-[0.3em] text-sun/80 uppercase">
+      <p {...r(0)} className="mb-3 text-xs tracking-[0.3em] text-sun/80 uppercase">
+        <span className="reveal-rule" aria-hidden="true" />
         {String(index).padStart(2, '0')} · {chapter.navLabel}
       </p>
-      <h2 id={`${chapter.id}-heading`} className="font-display text-4xl leading-[1.05] md:text-6xl">
+      <h2 {...r(1)} id={`${chapter.id}-heading`} className="font-display text-4xl leading-[1.05] md:text-6xl">
         {chapter.heading}
       </h2>
-      <p className="mt-4 text-[15px] text-white/70 md:text-lg">{chapter.intro}</p>
-      {children && <div className="mt-6 md:mt-8">{children}</div>}
+      <p {...r(2)} className="mt-4 text-[15px] text-white/70 md:text-lg">
+        {chapter.intro}
+      </p>
+      {children && (
+        <div {...r(3)} className="mt-6 md:mt-8">
+          {children}
+        </div>
+      )}
     </div>
   )
 }
@@ -120,12 +138,24 @@ function Panel({ chapter, index, wide, children }: { chapter: Chapter; index: nu
 function Intro() {
   return (
     <div className="pointer-events-auto">
-      <h1 id="home-heading" className="font-display text-7xl leading-none md:text-[9rem]">
-        {site.name}
+      {/* Letters rise in one by one; screen readers get the plain name. */}
+      <h1 id="home-heading" aria-label={site.name} className="font-display text-7xl leading-none md:text-[9rem]">
+        {[...site.name].map((ch, i) => (
+          <span key={i} aria-hidden="true" className="reveal-letter" style={{ '--i': i } as CSSProperties}>
+            {ch}
+          </span>
+        ))}
       </h1>
-      <p className="mt-4 text-sm tracking-[0.25em] text-white/70 uppercase md:text-base">{site.title}</p>
-      <p className="mx-auto mt-6 hidden max-w-md text-white/55 md:block">{site.tagline}</p>
-      <p className="absolute inset-x-0 bottom-10 text-xs tracking-[0.3em] text-white/45 uppercase">Scroll to explore</p>
+      <p {...r(4)} className="mt-4 text-sm tracking-[0.25em] text-white/70 uppercase md:text-base">
+        {site.title}
+      </p>
+      <p {...r(6)} className="mx-auto mt-6 hidden max-w-md text-white/55 md:block">
+        {site.tagline}
+      </p>
+      <div {...r(9)} className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-3">
+        <span className="text-xs tracking-[0.3em] text-white/45 uppercase">Scroll to explore</span>
+        <span className="scroll-cue" aria-hidden="true" />
+      </div>
     </div>
   )
 }
@@ -184,7 +214,13 @@ function WorksList({ chapter }: { chapter: Chapter }) {
               onBlur={() => useUi.getState().setHovered(null)}
               className="group flex w-full items-baseline justify-between gap-4 py-2.5 text-left"
             >
-              <span className="text-[15px] text-white/85 transition group-hover:text-sun">
+              <span className="flex items-baseline gap-2 text-[15px] text-white/85 transition group-hover:text-sun group-focus-visible:text-sun">
+                <span
+                  aria-hidden="true"
+                  className="-mr-2 w-0 overflow-hidden text-sun opacity-0 transition-all duration-300 group-hover:mr-0 group-hover:w-3 group-hover:opacity-100 group-focus-visible:mr-0 group-focus-visible:w-3 group-focus-visible:opacity-100"
+                >
+                  →
+                </span>
                 {w.title}
                 {w.featured && <span className="sr-only"> (featured)</span>}
               </span>
@@ -251,20 +287,23 @@ function Experience() {
 function Contact({ chapter, index }: { chapter: Chapter; index: number }) {
   return (
     <div className="pointer-events-auto max-w-xl">
-      <p className="mb-3 text-xs tracking-[0.3em] text-sun/80 uppercase">
+      <p {...r(0)} className="mb-3 text-xs tracking-[0.3em] text-sun/80 uppercase">
         {String(index).padStart(2, '0')} · {chapter.navLabel}
       </p>
-      <h2 id={`${chapter.id}-heading`} className="font-display text-5xl leading-[1.05] md:text-7xl">
+      <h2 {...r(1)} id={`${chapter.id}-heading`} className="font-display text-5xl leading-[1.05] md:text-7xl">
         {chapter.heading}
       </h2>
-      <p className="mt-5 text-base text-white/70 md:text-lg">{chapter.intro}</p>
+      <p {...r(2)} className="mt-5 text-base text-white/70 md:text-lg">
+        {chapter.intro}
+      </p>
       <a
+        {...r(3)}
         href={`mailto:${site.email}`}
         className="mt-8 inline-block border-b border-sun/60 pb-1 font-display text-2xl text-sun transition hover:border-sun md:text-3xl"
       >
         {site.email}
       </a>
-      <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm">
+      <div {...r(4)} className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm">
         {site.socials.map((s) => (
           <a key={s.label} href={s.url} target="_blank" rel="noreferrer" className="text-white/65 transition hover:text-white">
             {s.label}
@@ -286,7 +325,7 @@ function Contact({ chapter, index }: { chapter: Chapter; index: number }) {
 /** Licence attribution for third-party assets (required by CC BY 4.0). */
 function Credits() {
   return (
-    <p className="mt-10 text-[11px] leading-relaxed text-white/35">
+    <p {...r(5)} className="mt-10 text-[11px] leading-relaxed text-white/35">
       Planet textures by{' '}
       <a className="underline decoration-white/20 hover:text-white/60" href="https://www.solarsystemscope.com/textures/">
         Solar System Scope

@@ -109,7 +109,7 @@ export function Experience({ timeline }: { timeline: Timeline }) {
             .map((s) => (
               <SkillRocks key={s.chapter.id} chapterIndex={s.index} />
             ))}
-          <OrbitLines />
+          <OrbitLines timeline={timeline} />
           <Effects />
           <Ready />
         </Suspense>

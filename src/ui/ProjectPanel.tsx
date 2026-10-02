@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { categoryLabel, sortedWorks, workById } from '../content'
 import type { Work } from '../content/types'
 import { parseVideo } from '../lib/video'
@@ -45,13 +45,14 @@ export function ProjectPanel() {
       aria-labelledby="project-title"
       tabIndex={-1}
       data-lenis-prevent
+      data-state={visible ? 'in' : 'out'}
       className={`fixed z-40 flex flex-col overflow-hidden border-white/10 bg-[#07080d]/88 shadow-2xl backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] outline-none
         inset-x-0 bottom-0 h-[64svh] rounded-t-3xl border-t
         md:inset-y-0 md:right-0 md:left-auto md:h-auto md:w-[min(600px,48vw)] md:rounded-none md:border-t-0 md:border-l
         ${visible ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-x-full md:translate-y-0'}`}
     >
       <header className="flex items-center justify-between px-6 pt-5 pb-3 md:px-10 md:pt-8">
-        <p className="text-xs tracking-[0.3em] text-sun/80 uppercase">
+        <p data-reveal style={{ '--i': 0 } as CSSProperties} className="text-xs tracking-[0.3em] text-sun/80 uppercase">
           {categoryLabel[work.category]} · {work.year}
         </p>
         <button
@@ -67,13 +68,16 @@ export function ProjectPanel() {
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto overscroll-contain px-6 pb-10 md:px-10">
-        <h2 id="project-title" className="font-display text-4xl leading-[1.05] md:text-5xl">
+      {/* Keyed by work so switching projects replays the reveal. */}
+      <div key={work.id} className="flex-1 overflow-y-auto overscroll-contain px-6 pb-10 md:px-10">
+        <h2 data-reveal style={{ '--i': 1 } as CSSProperties} id="project-title" className="font-display text-4xl leading-[1.05] md:text-5xl">
           {work.title}
         </h2>
-        <p className="mt-3 text-sm text-white/60">{work.role}</p>
+        <p data-reveal style={{ '--i': 2 } as CSSProperties} className="mt-3 text-sm text-white/60">
+          {work.role}
+        </p>
         {work.tags && work.tags.length > 0 && (
-          <ul className="mt-4 flex flex-wrap gap-2" aria-label="Tags">
+          <ul data-reveal style={{ '--i': 3 } as CSSProperties} className="mt-4 flex flex-wrap gap-2" aria-label="Tags">
             {work.tags.map((t) => (
               <li key={t} className="rounded-full border border-white/12 px-3 py-1 text-[11px] text-white/65">
                 {t}
@@ -82,7 +86,7 @@ export function ProjectPanel() {
           </ul>
         )}
 
-        <div className="mt-7">
+        <div data-reveal style={{ '--i': 4 } as CSSProperties} className="mt-7">
           <Hero work={work} key={work.id} />
         </div>
 
