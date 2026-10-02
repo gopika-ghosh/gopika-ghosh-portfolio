@@ -1,24 +1,40 @@
-import { useState } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { PerformanceMonitor } from '@react-three/drei'
-import { bodyList } from '../config/bodies'
+import { bodyList, type BodyDef, type BodyLook } from '../config/bodies'
+import { quality } from '../config/quality'
 import { CameraRig } from '../journey/CameraRig'
 import type { Timeline } from '../journey/timeline'
 import { FrameDriver } from './FrameDriver'
 import { OrbitClock } from './OrbitClock'
+import { Ready } from './Ready'
+import { PreloadTextures, type TextureSpec } from './textures'
 import { AsteroidBelt } from './bodies/AsteroidBelt'
 import { OrbitLines } from './bodies/OrbitLines'
 import { Planet } from './bodies/Planet'
 import { Sun } from './bodies/Sun'
+import { Effects } from './effects/Effects'
+import { MILKY_WAY, MilkyWay } from './environment/MilkyWay'
 import { Starfield } from './environment/Starfield'
 
-const MAX_DPR = Math.min(2, window.devicePixelRatio || 1)
-const planets = bodyList.filter((b) => b.kind === 'planet')
+const MAX_DPR = Math.min(quality.maxDpr, window.devicePixelRatio || 1)
+const planets = bodyList.filter((b): b is BodyDef & { look: BodyLook } => b.kind === 'planet' && !!b.look)
+const allTextures: TextureSpec[] = [
+  MILKY_WAY.map,
+  ...planets.flatMap((p) => Object.values(p.look.textures).filter((t): t is TextureSpec => !!t)),
+]
 
 /** The fixed, full-screen WebGL layer behind the scrolling HTML. */
 export function Experience({ timeline }: { timeline: Timeline }) {
   // Adaptive resolution: drop pixel ratio when frames slow down, restore it when there's headroom.
   const [dpr, setDpr] = useState(MAX_DPR)
+
+  // Which chapters visit each planet (drives 4K texture streaming).
+  const stopsByBody = useMemo(() => {
+    const map: Record<string, number[]> = {}
+    for (const s of timeline.stops) (map[s.chapter.station] ??= []).push(s.index)
+    return map
+  }, [timeline])
 
   return (
     <div className="fixed inset-0" aria-hidden="true">
@@ -26,7 +42,8 @@ export function Experience({ timeline }: { timeline: Timeline }) {
         frameloop="never"
         dpr={dpr}
         camera={{ fov: 45, near: 0.3, far: 6000, position: [0, 150, 120] }}
-        gl={{ antialias: true, powerPreference: 'high-performance', alpha: false }}
+        // Anti-aliasing is done by the post-processing composer (MSAA), not the default framebuffer.
+        gl={{ antialias: false, powerPreference: 'high-performance', alpha: false, stencil: false }}
       >
         <color attach="background" args={['#030409']} />
         <PerformanceMonitor
@@ -35,17 +52,22 @@ export function Experience({ timeline }: { timeline: Timeline }) {
         />
         <FrameDriver />
         <OrbitClock />
-
-        <ambientLight intensity={0.035} />
-        <Starfield />
-        <Sun />
-        {planets.map((b) => (
-          <Planet key={b.id} def={b} />
-        ))}
-        <AsteroidBelt />
-        <OrbitLines />
-
         <CameraRig timeline={timeline} />
+        <PreloadTextures specs={allTextures} />
+
+        <Suspense fallback={null}>
+          <MilkyWay />
+          <Starfield density={quality.starDensity} />
+          <Sun />
+          {planets.map((b) => (
+            <Planet key={b.id} def={b} stops={stopsByBody[b.id] ?? []} />
+          ))}
+          <ambientLight intensity={0.03} />
+          <AsteroidBelt />
+          <OrbitLines />
+          <Effects />
+          <Ready />
+        </Suspense>
       </Canvas>
     </div>
   )

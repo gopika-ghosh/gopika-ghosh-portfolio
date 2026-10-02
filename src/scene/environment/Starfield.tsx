@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color } from 'three'
 import { seeded } from '../../lib/random'
+import { useShaderMaterial } from '../useShaderMaterial'
 import vertexShader from '../shaders/starfield.vert.glsl?raw'
 import fragmentShader from '../shaders/starfield.frag.glsl?raw'
 
@@ -51,27 +52,25 @@ export function Starfield({ density = 1 }: { density?: number }) {
     })
   }, [density])
 
-  // Shared by all layers.
-  const uniforms = useMemo(() => ({ uTime: { value: 0 }, uPixelRatio: { value: 1 } }), [])
+  // One material shared by all layers.
+  const material = useShaderMaterial(() => ({
+    vertexShader,
+    fragmentShader,
+    uniforms: { uTime: { value: 0 }, uPixelRatio: { value: 1 } },
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  }))
 
   useFrame(({ clock, viewport }) => {
-    uniforms.uTime.value = clock.elapsedTime
-    uniforms.uPixelRatio.value = viewport.dpr
+    material.uniforms.uTime.value = clock.elapsedTime
+    material.uniforms.uPixelRatio.value = viewport.dpr
   })
 
   return (
     <group>
       {layers.map((g, i) => (
-        <points key={i} geometry={g} frustumCulled={false}>
-          <shaderMaterial
-            vertexShader={vertexShader}
-            fragmentShader={fragmentShader}
-            uniforms={uniforms}
-            transparent
-            depthWrite={false}
-            blending={AdditiveBlending}
-          />
-        </points>
+        <points key={i} geometry={g} material={material} frustumCulled={false} />
       ))}
     </group>
   )

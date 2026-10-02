@@ -25,7 +25,7 @@ export function OrbitLines() {
   return (
     <group>
       {orbits.map((o) => (
-        <Line key={o.id} points={o.points} color="#ffd9a8" lineWidth={1} transparent opacity={0.09} depthWrite={false} />
+        <Line key={o.id} points={o.points} color="#ffd9a8" lineWidth={1} transparent opacity={0.055} depthWrite={false} />
       ))}
     </group>
   )

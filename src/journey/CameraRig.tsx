@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { MathUtils, Vector3, type PerspectiveCamera } from 'three'
 import { easing } from 'maath'
 import { stations } from '../config/stations'
+import { cameraMotion } from './cameraMotion'
 import { blendPoses, createPose, easeFlight, stationPose } from './cameraPath'
 import { scrollStore } from './scrollStore'
 import { locate, type Segment, type Timeline } from './timeline'
@@ -20,6 +21,7 @@ const _d = new Vector3()
 const _r = new Vector3()
 const _u = new Vector3()
 const _look = new Vector3()
+const _prev = new Vector3()
 
 /**
  * Drives the camera from scroll position. Runs entirely inside the frame loop:
@@ -66,6 +68,7 @@ export function CameraRig({ timeline }: { timeline: Timeline }) {
       screen.current.x = target.screen.x
       screen.current.y = target.screen.y
       cam.fov = fov
+      _prev.copy(target.position)
       started.current = true
     } else {
       easing.damp3(cam.position, target.position, SMOOTH, dt)
@@ -75,6 +78,14 @@ export function CameraRig({ timeline }: { timeline: Timeline }) {
       easing.damp(cam, 'fov', fov, SMOOTH, dt)
     }
     cam.updateProjectionMatrix()
+
+    // Motion signal for effects: speed relative to distance from what we're looking at,
+    // so a fast flight across the outer system reads the same as a fast inner one.
+    if (dt > 0) {
+      const rel = cam.position.distanceTo(_prev) / dt / Math.max(cam.position.distanceTo(focus.current), 1)
+      easing.damp(cameraMotion, 'speed', Math.min(1, Math.max(0, rel - 0.15) / 1.1), 0.25, dt)
+    }
+    _prev.copy(cam.position)
 
     // 4. Aim so the focused body lands at its screen offset (text gets the other side).
     _d.subVectors(focus.current, cam.position).normalize()

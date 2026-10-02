@@ -62,7 +62,12 @@ export function useSmoothScroll(timeline: Timeline) {
     }
     window.addEventListener('resize', onResize)
 
+    // Always start the journey at the beginning, and hold scrolling until the scene is ready.
+    history.scrollRestoration = 'manual'
+    window.scrollTo(0, 0)
     lenis = new Lenis({ autoRaf: false, lerp: 0.085, wheelMultiplier: 0.9 })
+    if (!useUi.getState().ready) lenis.stop()
+    const unsubReady = useUi.subscribe((s) => s.ready && lenis?.start())
     const tick = (time: number) => lenis!.raf(time * 1000)
     gsap.ticker.add(tick, false, true) // prioritised: scroll updates before the scene renders
     gsap.ticker.lagSmoothing(0)
@@ -100,6 +105,7 @@ export function useSmoothScroll(timeline: Timeline) {
       const back = ['ArrowUp', 'PageUp'].includes(e.key) || (e.key === ' ' && e.shiftKey)
       if (!forward && !back) return
       e.preventDefault()
+      if (!useUi.getState().ready) return
       // Next/previous arrival point, with a tolerance so a glide that settles a hair
       // short of a stop doesn't count as "still travelling" towards it.
       const EPS = 0.02
@@ -116,6 +122,7 @@ export function useSmoothScroll(timeline: Timeline) {
       window.removeEventListener('resize', onResize)
       window.removeEventListener('keydown', onKey)
       window.clearTimeout(snapTimer)
+      unsubReady()
       gsap.ticker.remove(tick)
       lenis?.destroy()
       lenis = null

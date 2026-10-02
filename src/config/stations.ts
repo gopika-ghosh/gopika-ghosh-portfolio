@@ -64,10 +64,10 @@ export const stations: Record<StationId, Station> = {
     kind: 'body', body: 'sun', frameFrom: 'mercury', distance: 2.9, azimuth: 160, elevation: 8, fov: 45,
     screen: { x: 0.42, y: 0 }, portraitScreen: { x: 0, y: 0.45 },
   },
-  mercury: { kind: 'body', body: 'mercury', distance: 7, azimuth: 60, elevation: 10, fov: 40, screen: side, portraitScreen: top },
-  venus: { kind: 'body', body: 'venus', distance: 6, azimuth: 55, elevation: 8, fov: 40, screen: side, portraitScreen: top },
-  earth: { kind: 'body', body: 'earth', distance: 6, azimuth: 55, elevation: 10, fov: 40, screen: side, portraitScreen: top },
-  mars: { kind: 'body', body: 'mars', distance: 6.5, azimuth: 60, elevation: 12, fov: 40, screen: side, portraitScreen: top },
+  mercury: { kind: 'body', body: 'mercury', distance: 7, azimuth: 60, elevation: 18, fov: 40, screen: side, portraitScreen: top },
+  venus: { kind: 'body', body: 'venus', distance: 6, azimuth: 55, elevation: 18, fov: 40, screen: side, portraitScreen: top },
+  earth: { kind: 'body', body: 'earth', distance: 6, azimuth: 55, elevation: 18, fov: 40, screen: side, portraitScreen: top },
+  mars: { kind: 'body', body: 'mars', distance: 6.5, azimuth: 60, elevation: 20, fov: 40, screen: side, portraitScreen: top },
   asteroids: { kind: 'body', body: 'asteroids', distance: 6.5, azimuth: 70, elevation: 16, fov: 45, screen: { x: 0.2, y: 0 }, portraitScreen: { x: 0, y: 0.2 } },
   jupiter: { kind: 'body', body: 'jupiter', distance: 5, azimuth: 55, elevation: 8, fov: 40, screen: side, portraitScreen: top },
   saturn: { kind: 'body', body: 'saturn', distance: 6, azimuth: 50, elevation: 16, fov: 40, screen: side, portraitScreen: top },
@@ -75,6 +75,6 @@ export const stations: Record<StationId, Station> = {
   neptune: { kind: 'body', body: 'neptune', distance: 6, azimuth: 60, elevation: 10, fov: 40, screen: side, portraitScreen: top },
   beyond: {
     kind: 'system', anchor: 'neptune', angleOffset: 0.35, radius: 520, height: 120, fov: 32,
-    screen: { x: 0, y: 0.42 }, portraitScreen: { x: 0, y: 0.45 },
+    screen: { x: 0, y: 0.58 }, portraitScreen: { x: 0, y: 0.55 },
   },
 }

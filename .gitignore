@@ -3,3 +3,6 @@ dist
 .DS_Store
 *.local
 *.tsbuildinfo
+assets-src
+assets-src
+inspect-out

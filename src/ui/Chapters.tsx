@@ -54,9 +54,12 @@ function ChapterSection({ stop }: { stop: Stop }) {
               </h2>
               <p className="mt-5 text-base text-white/70 md:text-lg">{chapter.intro}</p>
               {chapter.kind === 'contact' && (
-                <a href={`mailto:${site.email}`} className="mt-8 inline-block border-b border-sun/60 pb-1 text-sun">
-                  {site.email}
-                </a>
+                <>
+                  <a href={`mailto:${site.email}`} className="mt-8 inline-block border-b border-sun/60 pb-1 text-sun">
+                    {site.email}
+                  </a>
+                  <Credits />
+                </>
               )}
             </div>
           )}
@@ -75,5 +78,22 @@ function Intro() {
       <p className="mt-4 text-sm tracking-[0.25em] text-white/70 uppercase md:text-base">{site.title}</p>
       <p className="absolute inset-x-0 bottom-10 text-xs tracking-[0.3em] text-white/45 uppercase">Scroll to explore</p>
     </div>
+  )
+}
+
+/** Licence attribution for third-party assets (required by CC BY 4.0). */
+function Credits() {
+  return (
+    <p className="mt-10 text-[11px] leading-relaxed text-white/35">
+      Planet textures by{' '}
+      <a className="underline decoration-white/20 hover:text-white/60" href="https://www.solarsystemscope.com/textures/">
+        Solar System Scope
+      </a>
+      , licensed{' '}
+      <a className="underline decoration-white/20 hover:text-white/60" href="https://creativecommons.org/licenses/by/4.0/">
+        CC BY 4.0
+      </a>
+      , based on NASA imagery.
+    </p>
   )
 }
