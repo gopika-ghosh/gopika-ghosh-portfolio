@@ -1,0 +1,27 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --color-space: #030409;
+  --color-sun: #ffb35c;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-space);
+  color: #f3efe8;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keep text legible over bright bodies without a visible box. */
+main h1,
+main h2,
+main p {
+  text-shadow: 0 1px 24px rgb(3 4 9 / 0.65);
+}
