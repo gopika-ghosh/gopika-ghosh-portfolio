@@ -70,6 +70,25 @@ video: { url: '/media/showreel.mp4', poster: '/images/works/showreel-2025/01.web
 
 The video replaces the hero image in the project panel. Nothing loads from YouTube or Vimeo until the visitor presses play, which keeps the site fast and avoids tracking cookies.
 
+## Show Instagram posts and reels
+
+Each project can link to a client's Instagram account and embed specific posts or reels:
+
+```ts
+instagram: {
+  profile: 'https://www.instagram.com/inhavo.furniture/',   // "See more on Instagram" button
+  posts: [
+    'https://www.instagram.com/p/ABC123xyz/',               // a post
+    'https://www.instagram.com/reel/DEF456uvw/',            // a reel
+  ],
+},
+links: [{ label: 'Nexa on LinkedIn', url: 'https://www.linkedin.com/company/…' }],  // optional extra buttons
+```
+
+Get a post's link from Instagram with **Share → Copy link**. Tracking bits such as `?igsh=…` are fine; they're ignored. Embeds load only when a visitor clicks them, which keeps the site fast. Instagram doesn't allow embedding a whole profile, so link the profile and pick a few posts.
+
+Instagram can't supply the moon thumbnail or gallery images. Export those from the original files and add them as described in [Change images](#change-images).
+
 ## Too many projects for one planet?
 
 Each planet shows up to **8 moons** by default. If a category has more, the extra projects are gathered into a **"+N" moon** that opens a grid of every project. To change the limit for one planet, add this to its chapter in `chapters.ts`:
