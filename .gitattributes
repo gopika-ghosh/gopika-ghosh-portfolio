@@ -1,0 +1,8 @@
+# Binary assets: never convert line endings (PDF byte offsets would break).
+*.pdf  binary
+*.ktx2 binary
+*.wasm binary
+*.webp binary
+*.png  binary
+*.jpg  binary
+*.mp4  binary
