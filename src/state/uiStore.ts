@@ -27,6 +27,10 @@ interface UiState {
   /** Moon under the pointer (id), for highlight + cursor. */
   hovered: string | null
   setHovered: (id: string | null) => void
+
+  /** Tool whose project links are shown in the asteroid belt (hover or tap). */
+  tool: string | null
+  setTool: (name: string | null) => void
 }
 
 export const useUi = create<UiState>((set) => ({
@@ -45,7 +49,23 @@ export const useUi = create<UiState>((set) => ({
   closeViewAll: () => set({ viewAll: null }),
   hovered: null,
   setHovered: (hovered) => set({ hovered }),
+  tool: null,
+  setTool: (tool) => set({ tool }),
 }))
 
 /** True while any modal layer (panel or grid) is open. */
 export const isModalOpen = (s: Pick<UiState, 'openWorkId' | 'viewAll'>) => !!s.openWorkId || !!s.viewAll
+
+// Tool hover with a grace period: the camera drifts and the list sits below the badge,
+// so leaving clears the selection only if the pointer doesn't come back shortly.
+let toolTimer = 0
+export function hoverTool(name: string) {
+  window.clearTimeout(toolTimer)
+  useUi.getState().setTool(name)
+}
+export function leaveTool(name: string) {
+  window.clearTimeout(toolTimer)
+  toolTimer = window.setTimeout(() => {
+    if (useUi.getState().tool === name) useUi.getState().setTool(null)
+  }, 700)
+}

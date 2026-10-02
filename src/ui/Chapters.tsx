@@ -6,7 +6,7 @@ import { DEFAULT_MAX_VISIBLE_WORKS, sortedWorks } from '../content'
 import { experience } from '../content/experience'
 import { skills, toolLogos } from '../content/skills'
 import { awards, testimonials } from '../content/testimonials'
-import { isModalOpen, useUi } from '../state/uiStore'
+import { hoverTool, isModalOpen, leaveTool, useUi } from '../state/uiStore'
 import { Testimonials } from './Testimonials'
 
 /**
@@ -287,6 +287,8 @@ function Skills() {
             {g.items.map((s) => (
               <li
                 key={s}
+                onPointerEnter={() => toolLogos[s] && hoverTool(s)}
+                onPointerLeave={() => toolLogos[s] && leaveTool(s)}
                 className="flex items-center gap-1.5 rounded-full border border-white/12 bg-black/30 px-3 py-1 text-[13px] text-white/80 backdrop-blur-sm"
               >
                 {toolLogos[s] && <img src={toolLogos[s]} alt="" className="size-3.5 object-contain" />}

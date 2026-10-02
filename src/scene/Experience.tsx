@@ -19,6 +19,7 @@ import { MILKY_WAY, MilkyWay } from './environment/MilkyWay'
 import { Starfield } from './environment/Starfield'
 import { RingTimeline } from './features/RingTimeline'
 import { SkillRocks } from './features/SkillRocks'
+import { ToolLinks } from './features/ToolLinks'
 import { MOON_TEXTURE, MoonSystem } from './moons/MoonSystem'
 import { experience } from '../content/experience'
 import { useUi } from '../state/uiStore'
@@ -113,6 +114,7 @@ export function Experience({ timeline, onContextLost }: { timeline: Timeline; on
             .map((s) => (
               <SkillRocks key={s.chapter.id} chapterIndex={s.index} />
             ))}
+          <ToolLinks />
           <OrbitLines timeline={timeline} />
           <Effects />
           <Ready />

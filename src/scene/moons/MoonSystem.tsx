@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { AdditiveBlending, Color, Quaternion, Vector3, type Group } from 'three'
+import { AdditiveBlending, Color, Quaternion, Vector3, type Group, type Texture } from 'three'
 import { easing } from 'maath'
 import { DEFAULT_MAX_VISIBLE_WORKS, sortedWorks, workById } from '../../content'
 import type { WorkCategory } from '../../content/types'
@@ -13,6 +13,7 @@ import { useTextures } from '../textures'
 import { useShaderMaterial } from '../useShaderMaterial'
 import { layoutMoons, MORE_ID, type MoonSlot } from './layoutMoons'
 import { moonRegistry, moreKey } from './registry'
+import { useWorkTextures } from './workTexture'
 import planetVert from '../shaders/planet.vert.glsl?raw'
 import glowFrag from '../shaders/glow.frag.glsl?raw'
 
@@ -35,6 +36,10 @@ export function MoonSystem({ planet, category, chapterIndex, maxVisible = DEFAUL
   const list = useMemo(() => sortedWorks(category), [category])
   const layout = useMemo(() => layoutMoons(list, planet.radius, maxVisible), [list, planet.radius, maxVisible])
   const { map } = useTextures(MOON_TEXTURE)
+  // Each work's moon is wrapped in its own project image.
+  const shown = useMemo(() => layout.slots.filter((s) => s.id !== MORE_ID).map((s) => workById.get(s.id)!), [layout])
+  const surfaces = useWorkTextures(shown.map((w) => w.thumbnail))
+  const surfaceFor = (id: string) => surfaces[shown.findIndex((w) => w.id === id)]
 
   // Let the camera station back off far enough to frame every orbit.
   useEffect(() => {
@@ -53,7 +58,8 @@ export function MoonSystem({ planet, category, chapterIndex, maxVisible = DEFAUL
           key={slot.id}
           slot={slot}
           category={category}
-          map={map}
+          map={slot.id === MORE_ID ? map : surfaceFor(slot.id)}
+          isWork={slot.id !== MORE_ID}
           active={active}
           chapterIndex={chapterIndex}
           planetRadius={planet.radius}
@@ -67,7 +73,9 @@ export function MoonSystem({ planet, category, chapterIndex, maxVisible = DEFAUL
 interface MoonProps {
   slot: MoonSlot
   category: WorkCategory
-  map: ReturnType<typeof useTextures<typeof MOON_TEXTURE>>['map']
+  /** The project image (work moons) or the lunar surface (the "+N" moon). */
+  map: Texture
+  isWork: boolean
   active: boolean
   chapterIndex: number
   planetRadius: number
@@ -80,7 +88,7 @@ const _planet = new Vector3()
 const _a = new Vector3()
 const _b = new Vector3()
 
-function Moon({ slot, category, map, active, chapterIndex, planetRadius, moreCount }: MoonProps) {
+function Moon({ slot, category, map, isWork, active, chapterIndex, planetRadius, moreCount }: MoonProps) {
   const isMore = slot.id === MORE_ID
   const key = isMore ? moreKey(category) : slot.id
   const work = isMore ? undefined : workById.get(slot.id)
@@ -175,14 +183,14 @@ function Moon({ slot, category, map, active, chapterIndex, planetRadius, moreCou
     <group ref={pivot} quaternion={tilt}>
       <group ref={body}>
         <mesh scale={slot.size} castShadow={false}>
-          <sphereGeometry args={[1, 32, 24]} />
-          <meshStandardMaterial
-            map={map}
-            roughness={1}
-            color={isMore ? '#ffd9a8' : '#ffffff'}
-            emissive="#2a1a0c"
-            emissiveIntensity={0.6}
-          />
+          <sphereGeometry args={[1, 48, 32]} />
+          {isWork ? (
+            // Her work as the moon's surface: lit by the Sun, with a faint self-glow so the
+            // image still reads on the night side.
+            <meshStandardMaterial map={map} emissiveMap={map} emissive="#ffffff" emissiveIntensity={0.22} roughness={0.85} />
+          ) : (
+            <meshStandardMaterial map={map} roughness={1} color="#ffd9a8" emissive="#2a1a0c" emissiveIntensity={0.6} />
+          )}
         </mesh>
         <mesh scale={slot.size * 1.22} material={glow}>
           <sphereGeometry args={[1, 24, 16]} />

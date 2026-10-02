@@ -109,6 +109,11 @@ export interface Work {
   featured?: boolean
   /** Optional short tags, e.g. ["Fintech", "iOS"]. */
   tags?: string[]
+  /**
+   * Tools used, matching names in skills.ts (e.g. 'Figma'). In the asteroid belt,
+   * hovering a tool draws lines to every project that lists it.
+   */
+  tools?: string[]
 }
 
 export interface Role {

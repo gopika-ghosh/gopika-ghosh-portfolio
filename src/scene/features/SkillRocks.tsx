@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { MathUtils, Vector3, type Group } from 'three'
@@ -6,8 +6,10 @@ import { easing } from 'maath'
 import { bodies } from '../../config/bodies'
 import { stations } from '../../config/stations'
 import { floatingSkillGroup, skills, toolLogos } from '../../content/skills'
+import { works } from '../../content/works'
+import { toolRegistry } from './toolRegistry'
 import { seeded } from '../../lib/random'
-import { useUi } from '../../state/uiStore'
+import { hoverTool, leaveTool, useUi } from '../../state/uiStore'
 import { createRockGeometry } from '../bodies/AsteroidBelt'
 import { bodyAngle } from '../orbits'
 
@@ -54,6 +56,7 @@ export function SkillRocks({ chapterIndex }: { chapterIndex: number }) {
       pos.y += y
       return {
         name,
+        projects: works.filter((w) => w.tools?.includes(name)),
         pos,
         size: 0.28 + rand() * 0.18,
         spin: new Vector3(rand() - 0.5, rand() - 0.5, rand() - 0.5).multiplyScalar(0.6),
@@ -77,8 +80,27 @@ export function SkillRocks({ chapterIndex }: { chapterIndex: number }) {
       m.position.y = r.pos.y + Math.sin(t * 0.4 + r.bob) * 0.15
     })
     easing.damp(fade.current, 'v', useUi.getState().active === chapterIndex ? 1 : 0, 0.3, dt)
-    for (const l of labels.current) if (l) l.style.opacity = fade.current.v.toFixed(3)
+    // Only touch the DOM when values change: rewriting styles every frame can stop
+    // Chrome painting parts of these layers.
+    const op = fade.current.v > 0.995 ? '1' : fade.current.v < 0.005 ? '0' : fade.current.v.toFixed(2)
+    const pe = fade.current.v > 0.5 ? 'auto' : 'none'
+    for (const l of labels.current) {
+      if (!l) continue
+      if (l.style.opacity !== op) l.style.opacity = op
+      if (l.style.pointerEvents !== pe) l.style.pointerEvents = pe
+    }
   })
+
+  // Register rocks for the skill lines; clear any shown tool when leaving the belt.
+  useEffect(() => {
+    rocks.forEach((r, i) => meshes.current[i] && toolRegistry.set(r.name, meshes.current[i]!))
+    return () => rocks.forEach((r) => toolRegistry.delete(r.name))
+  }, [rocks])
+  useEffect(() => {
+    if (!active && useUi.getState().tool) useUi.getState().setTool(null)
+  }, [active])
+  const shownTool = useUi((s) => s.tool)
+  const openWork = useUi((s) => s.openWork)
 
   return (
     <group ref={group}>
@@ -88,20 +110,55 @@ export function SkillRocks({ chapterIndex }: { chapterIndex: number }) {
             <meshStandardMaterial color="#9a8a78" roughness={0.9} emissive="#2b1b0e" emissiveIntensity={0.5} />
           </mesh>
           {active && (
-            <Html center position={[0, r.size * 2.6, 0]} zIndexRange={[25, 0]} style={{ pointerEvents: 'none' }}>
-              <div ref={(el) => void (labels.current[i] = el)} style={{ opacity: 0 }} className="flex flex-col items-center gap-1.5">
-                {toolLogos[r.name] ? (
-                  <>
-                    {/* The tool's logo on a small glass badge, with its name as a quiet caption. */}
-                    <span className="grid size-14 place-items-center rounded-2xl border border-white/12 bg-black/45 shadow-[0_8px_24px_-8px_rgb(0_0_0/0.8)] backdrop-blur-sm">
-                      <img src={toolLogos[r.name]} alt="" className="size-8 object-contain" draggable={false} />
-                    </span>
-                    <span className="text-[10px] tracking-[0.12em] whitespace-nowrap text-white/60 uppercase">{r.name}</span>
-                  </>
-                ) : (
-                  <span className="rounded-full border border-white/12 bg-black/45 px-3 py-1 text-[12px] whitespace-nowrap text-white/85 backdrop-blur-sm">
-                    {r.name}
-                  </span>
+            <Html
+              center
+              position={[0, r.size * 2.6, 0]}
+              // The selected tool's badge (and its project list) sits above the others.
+              zIndexRange={shownTool === r.name ? [28, 27] : [25, 0]}
+              style={{ pointerEvents: 'none' }}
+            >
+              <div
+                ref={(el) => void (labels.current[i] = el)}
+                style={{ opacity: 0, pointerEvents: 'none' }}
+                className="relative flex flex-col items-center gap-1.5"
+                onPointerEnter={() => hoverTool(r.name)}
+                onPointerLeave={() => leaveTool(r.name)}
+              >
+                {/* The tool's logo on a glass badge. Hover (or tap) wires it to the projects that used it. */}
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => useUi.getState().setTool(useUi.getState().tool === r.name ? null : r.name)}
+                  className={`grid size-14 place-items-center rounded-2xl border bg-black/45 shadow-[0_8px_24px_-8px_rgb(0_0_0/0.8)] backdrop-blur-sm transition ${
+                    shownTool === r.name ? 'scale-110 border-sun/70' : 'border-white/12 hover:border-white/30'
+                  }`}
+                  aria-label={r.name}
+                >
+                  {toolLogos[r.name] ? (
+                    <img src={toolLogos[r.name]} alt="" className="size-8 object-contain" draggable={false} />
+                  ) : (
+                    <span className="text-[10px] text-white/85">{r.name}</span>
+                  )}
+                </button>
+                <span className="text-[10px] tracking-[0.12em] whitespace-nowrap text-white/60 uppercase">{r.name}</span>
+                {shownTool === r.name && r.projects.length > 0 && (
+                  <ul className="absolute top-full z-10 mt-2 flex flex-col items-center gap-1">
+                    {r.projects.map((w) => (
+                      <li key={w.id}>
+                        <button
+                          type="button"
+                          tabIndex={-1}
+                          onClick={() => {
+                            useUi.getState().setTool(null)
+                            openWork(w.id)
+                          }}
+                          className="rounded-full border border-sun/40 bg-[#0b0c12]/90 px-3 py-1 text-[11px] whitespace-nowrap text-white/85 transition hover:border-sun hover:text-white"
+                        >
+                          {w.title}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             </Html>

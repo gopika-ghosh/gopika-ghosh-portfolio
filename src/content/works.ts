@@ -10,7 +10,8 @@ import type { Work } from './types'
  *
  * Source: Gopika's résumé and her clients' Instagram accounts.
  * TODO (marked below): client project images are placeholders, years are best guesses,
- * and embedded posts/reels need their links (instagram.com/p/… or /reel/…).
+ * embedded posts/reels need their links (instagram.com/p/… or /reel/…), and the client
+ * projects need their `tools` (e.g. ['Canva', 'Adobe Photoshop']) to join the skill lines.
  */
 
 /** Shorthand for the standard image set of a work. */
@@ -43,6 +44,7 @@ export const works: Work[] = [
     ...img('utility-emc', 2),
     externalLink: { label: 'Visit the live site', url: 'https://www.utility.com.bh/' },
     featured: true,
+    tools: ['Figma', 'Adobe Photoshop', 'Cursor AI'],
     tags: ['Web', 'UI/UX', 'Front-end'],
   },
   {
@@ -56,6 +58,7 @@ export const works: Work[] = [
       'Delivered the end-to-end UI/UX design, from user flows and wireframes to high-fidelity interfaces, with intuitive, business-focused layouts aligned to operational requirements.\n\nContributed to front-end development for a seamless, responsive implementation.\n\nTools: Figma, Photoshop, Cursor AI.',
     ...img('united-arab-engineering', 2),
     externalLink: { label: 'Visit the live site', url: 'https://www.unitedarabengineering.com/' },
+    tools: ['Figma', 'Adobe Photoshop', 'Cursor AI'],
     tags: ['Web', 'UI/UX', 'Responsive'],
   },
   {
@@ -69,6 +72,7 @@ export const works: Work[] = [
       'Designed a modern landing page for a clothing brand: clean, responsive UI/UX focused on engagement and product visibility.\n\nContributed to the front-end implementation to keep it responsive and consistent with the design.\n\nTools: Figma, Photoshop, Cursor AI.',
     ...img('ishloom', 2),
     externalLink: { label: 'Visit the live site', url: 'https://ishloom.com/' },
+    tools: ['Figma', 'Adobe Photoshop', 'Cursor AI'],
     tags: ['Landing page', 'Fashion', 'UI/UX'],
   },
   {
@@ -82,6 +86,7 @@ export const works: Work[] = [
       'Redesigned the company website with a focus on improved usability, visual clarity and modern UI standards.\n\nTools: Figma, Photoshop.',
     ...img('pokak-website', 2),
     externalLink: { label: 'Visit the live site', url: 'https://pokaktech.com/' },
+    tools: ['Figma', 'Adobe Photoshop'],
     tags: ['Web', 'Redesign'],
   },
 
@@ -160,6 +165,7 @@ export const works: Work[] = [
     summary: 'Logos and brand marks, drawn in Adobe Illustrator and Photoshop.',
     description: 'Logo design for brands and businesses, created in Adobe Illustrator and Adobe Photoshop.',
     ...img('logo-design', 2),
+    tools: ['Adobe Illustrator', 'Adobe Photoshop'],
     tags: ['Logo', 'Brand identity'],
   },
   {
