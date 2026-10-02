@@ -33,5 +33,19 @@ export const skills: SkillGroup[] = [
   },
 ]
 
-/** Which group's items become the floating labelled rocks. */
+/** Which group's items become the floating rocks in the asteroid belt. */
 export const floatingSkillGroup = 'Tools'
+
+/**
+ * Logos for the floating tools (files in /public/images/tools). A tool without a logo
+ * shows its name instead. Sources: Devicon (MIT) for Figma, Photoshop, Illustrator and
+ * Canva; Simple Icons (CC0) for Cursor; Wikimedia Commons (public domain) for PowerPoint.
+ */
+export const toolLogos: Record<string, string> = {
+  Figma: '/images/tools/figma.svg',
+  'Adobe Photoshop': '/images/tools/photoshop.svg',
+  'Adobe Illustrator': '/images/tools/illustrator.svg',
+  Canva: '/images/tools/canva.svg',
+  'Microsoft PowerPoint': '/images/tools/powerpoint.svg',
+  'Cursor AI': '/images/tools/cursor.svg',
+}

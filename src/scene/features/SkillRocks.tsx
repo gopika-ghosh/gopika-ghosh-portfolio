@@ -5,13 +5,11 @@ import { MathUtils, Vector3, type Group } from 'three'
 import { easing } from 'maath'
 import { bodies } from '../../config/bodies'
 import { stations } from '../../config/stations'
-import { floatingSkillGroup, skills } from '../../content/skills'
+import { floatingSkillGroup, skills, toolLogos } from '../../content/skills'
 import { seeded } from '../../lib/random'
 import { useUi } from '../../state/uiStore'
 import { createRockGeometry } from '../bodies/AsteroidBelt'
 import { bodyAngle } from '../orbits'
-
-const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5))
 
 /**
  * Larger rocks drifting around the asteroid-belt camera station, each labelled with
@@ -25,7 +23,8 @@ export function SkillRocks({ chapterIndex }: { chapterIndex: number }) {
   const geometry = useMemo(() => createRockGeometry(2, 101), [])
   const active = useUi((s) => s.active === chapterIndex)
 
-  // Golden-angle scatter around the station point, in the belt's own frame.
+  // A loose, staggered grid facing the camera, so logos never overlap on screen,
+  // with a little depth and jitter so it still reads as rocks drifting in the belt.
   const rocks = useMemo(() => {
     const rand = seeded(5)
     const a = def.startAngle
@@ -36,15 +35,23 @@ export function SkillRocks({ chapterIndex }: { chapterIndex: number }) {
     // Pull the labelled rocks toward the camera (station azimuth ≈ 70°) so they stand
     // in front of the background cluster instead of mixing into it.
     const az = MathUtils.degToRad(stations.asteroids.kind === 'body' ? stations.asteroids.azimuth : 70)
-    centre.addScaledVector(radial, -Math.cos(az) * 3.5).addScaledVector(tangent, Math.sin(az) * 3.5)
+    const towardCamera = radial.clone().multiplyScalar(-Math.cos(az)).addScaledVector(tangent, Math.sin(az))
+    centre.addScaledVector(towardCamera, 3.5)
+    // Shift toward screen-right, away from the text column on the left.
+    const screenRight = new Vector3().crossVectors(towardCamera.clone().negate(), new Vector3(0, 1, 0)).normalize()
+    centre.addScaledVector(screenRight, 1.5)
+    const COLS = 3
+    const rows = Math.ceil(names.length / COLS)
     return names.map((name, i) => {
-      const t = i * GOLDEN_ANGLE
-      const r = 1.4 + Math.sqrt((i + 0.5) / names.length) * 4.2
+      const col = i % COLS
+      const row = Math.floor(i / COLS)
+      const x = (col - (COLS - 1) / 2) * 2.5 + (row % 2 ? 0.9 : -0.3) + (rand() - 0.5) * 0.5
+      const y = ((rows - 1) / 2 - row) * 1.9 + (rand() - 0.5) * 0.4
       const pos = centre
         .clone()
-        .addScaledVector(radial, Math.cos(t) * r)
-        .addScaledVector(tangent, Math.sin(t) * r * 1.7)
-      pos.y = (rand() - 0.5) * 2.4
+        .addScaledVector(screenRight, x)
+        .addScaledVector(towardCamera, (rand() - 0.5) * 1.6)
+      pos.y += y
       return {
         name,
         pos,
@@ -81,13 +88,21 @@ export function SkillRocks({ chapterIndex }: { chapterIndex: number }) {
             <meshStandardMaterial color="#9a8a78" roughness={0.9} emissive="#2b1b0e" emissiveIntensity={0.5} />
           </mesh>
           {active && (
-            <Html center position={[0, -r.size * 1.9, 0]} zIndexRange={[25, 0]} style={{ pointerEvents: 'none' }}>
-              <div
-                ref={(el) => void (labels.current[i] = el)}
-                style={{ opacity: 0 }}
-                className="rounded-full border border-white/12 bg-black/45 px-3 py-1 text-[12px] whitespace-nowrap text-white/85 backdrop-blur-sm"
-              >
-                {r.name}
+            <Html center position={[0, r.size * 2.6, 0]} zIndexRange={[25, 0]} style={{ pointerEvents: 'none' }}>
+              <div ref={(el) => void (labels.current[i] = el)} style={{ opacity: 0 }} className="flex flex-col items-center gap-1.5">
+                {toolLogos[r.name] ? (
+                  <>
+                    {/* The tool's logo on a small glass badge, with its name as a quiet caption. */}
+                    <span className="grid size-14 place-items-center rounded-2xl border border-white/12 bg-black/45 shadow-[0_8px_24px_-8px_rgb(0_0_0/0.8)] backdrop-blur-sm">
+                      <img src={toolLogos[r.name]} alt="" className="size-8 object-contain" draggable={false} />
+                    </span>
+                    <span className="text-[10px] tracking-[0.12em] whitespace-nowrap text-white/60 uppercase">{r.name}</span>
+                  </>
+                ) : (
+                  <span className="rounded-full border border-white/12 bg-black/45 px-3 py-1 text-[12px] whitespace-nowrap text-white/85 backdrop-blur-sm">
+                    {r.name}
+                  </span>
+                )}
               </div>
             </Html>
           )}

@@ -4,7 +4,7 @@ import type { Chapter } from '../content/types'
 import { site } from '../content/site'
 import { DEFAULT_MAX_VISIBLE_WORKS, sortedWorks } from '../content'
 import { experience } from '../content/experience'
-import { skills } from '../content/skills'
+import { skills, toolLogos } from '../content/skills'
 import { awards, testimonials } from '../content/testimonials'
 import { isModalOpen, useUi } from '../state/uiStore'
 import { Testimonials } from './Testimonials'
@@ -285,7 +285,11 @@ function Skills() {
           <h3 className="mb-2 text-[11px] tracking-[0.25em] text-white/45 uppercase">{g.name}</h3>
           <ul className="flex flex-wrap gap-1.5">
             {g.items.map((s) => (
-              <li key={s} className="rounded-full border border-white/12 bg-black/30 px-3 py-1 text-[13px] text-white/80 backdrop-blur-sm">
+              <li
+                key={s}
+                className="flex items-center gap-1.5 rounded-full border border-white/12 bg-black/30 px-3 py-1 text-[13px] text-white/80 backdrop-blur-sm"
+              >
+                {toolLogos[s] && <img src={toolLogos[s]} alt="" className="size-3.5 object-contain" />}
                 {s}
               </li>
             ))}
