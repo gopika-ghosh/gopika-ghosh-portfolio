@@ -1,40 +1,44 @@
 import type { Role } from './types'
 
 /**
- * Work history, newest first. Shown on Saturn: each role becomes a marker on the rings.
- * Placeholder content — replace with your own.
+ * Work history and education, newest first. Shown on Saturn: each entry becomes a
+ * marker on the rings (oldest on the left) and a line in the list beside it.
+ * Source: Gopika's résumé.
  */
 export const experience: Role[] = [
   {
-    company: 'Northstar Studio',
-    title: 'Lead Product Designer',
-    start: '2023',
+    company: 'Crayo Tech Business Solutions',
+    short: 'Crayo Tech',
+    title: 'UI/UX and Graphic Designer',
+    start: '2025',
     end: 'Present',
-    location: 'Bengaluru · Remote',
-    summary: 'Leading design for fintech and health clients; built the studio’s design-systems practice.',
+    location: 'Trivandrum, Kerala',
+    summary:
+      'End-to-end UI/UX for client websites, from wireframes to high-fidelity interfaces and front-end build, plus marketing creatives, logos and presentations.',
   },
   {
-    company: 'Lumen',
-    title: 'Senior Product Designer',
-    start: '2021',
-    end: '2023',
-    location: 'London',
-    summary: 'Shaped the mobile banking app from beta to 300k users.',
+    company: 'POKAK Technologies',
+    short: 'POKAK',
+    title: 'UI/UX and Graphic Designer',
+    start: '2024',
+    end: '2025',
+    location: 'Kochi, Kerala',
+    summary:
+      'Redesigned the company website for usability and visual clarity, and designed posters, social media creatives and promotional materials.',
   },
   {
-    company: 'Atlas Health',
-    title: 'UX Designer',
+    company: 'Zoople Technologies',
+    short: 'Zoople · UI/UX',
+    title: 'UI/UX Design programme',
+    start: '2023',
+    end: '2024',
+  },
+  {
+    company: 'Providence College of Engineering',
+    short: 'B.Tech',
+    title: 'Bachelor of Technology',
     start: '2019',
-    end: '2021',
-    location: 'Berlin',
-    summary: 'Redesigned the patient portal with accessibility at its core.',
-  },
-  {
-    company: 'Freelance',
-    title: 'Graphic Designer & Video Editor',
-    start: '2016',
-    end: '2019',
-    location: 'Kochi',
-    summary: 'Identities, editorial and edits for restaurants, festivals and musicians.',
+    end: '2023',
+    location: 'Chengannur, Kerala',
   },
 ]

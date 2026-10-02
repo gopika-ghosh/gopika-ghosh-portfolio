@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { useAudioCues } from './audio/useAudioCues'
-import { chapters } from './content/chapters'
+import { journeyChapters as chapters } from './content'
 import { webglAvailable } from './lib/env'
 import { scrollStore } from './journey/scrollStore'
 import { buildTimeline } from './journey/timeline'

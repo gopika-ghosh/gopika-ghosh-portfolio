@@ -1,38 +1,51 @@
 /**
  * Site-wide details: who you are and how to reach you.
- * Placeholder text — replace with your own.
+ * Sourced from Gopika's résumé; lines marked TODO are still placeholders.
  */
 export const site = {
+  /** Shown large on the opening shot and in the navigation. */
   name: 'Gopika',
-  /** Your live address (no trailing slash). Used for search engines and link previews. */
+  /** Full name, used for search engines and link previews. */
+  fullName: 'Gopika Ghosh',
+  /** Your live address (no trailing slash). Used for search engines and link previews. TODO: set the real domain. */
   url: 'https://gopika.design',
   /** One or two sentences for search results and link previews (~155 characters). */
   description:
-    'Gopika is a UI/UX designer, graphic designer and video editor. Explore her work as a journey through a 3D solar system.',
+    'Gopika Ghosh is a UI/UX and graphic designer creating web, mobile and admin interfaces, brand identities and marketing design. Explore her work as a journey through a 3D solar system.',
   /** Preview image for links shared on social media (1200×630, in /public). */
   ogImage: '/og-image.jpg',
   /** Shown under your name on the opening shot. */
   title: 'UI/UX Designer · Graphic Designer · Video Editor',
+  /** TODO: placeholder — replace with a line in Gopika's own words. */
   tagline: 'Everything I make orbits one idea: design is for people.',
-  /** Paths are relative to /public. */
+  /** Paths are relative to /public. TODO: placeholder portrait — add her photo as public/images/gopika.webp. */
   photo: '/images/gopika.webp',
   /** Describes the photo for screen readers. */
-  photoAlt: 'Portrait of Gopika',
-  bio: 'I design interfaces, identities and edits that feel inevitable — calm on the surface, carefully engineered underneath. Over the past eight years I have worked with product teams, studios and independent brands across three continents.',
-  philosophy:
-    'Start with the person, not the pixel. Remove until it breaks, then add one thing back.',
+  photoAlt: 'Portrait of Gopika Ghosh',
+  bio: "I'm a UI/UX and graphic designer with 2+ years of experience designing web, mobile and admin interfaces. I focus on usability, accessibility and scalable design systems that connect the user experience with business goals — and I bring the same care to brand identities, marketing creatives and presentations.",
+  /** TODO: placeholder — replace with Gopika's own design philosophy. */
+  philosophy: 'Start with the person, not the pixel. Remove until it breaks, then add one thing back.',
   /** Shown at Mercury: one line per discipline. */
   disciplines: [
-    { name: 'UI/UX Design', line: 'Products that feel obvious — researched, prototyped, tested, shipped.' },
-    { name: 'Graphic Design', line: 'Identities and print with a point of view and a system behind it.' },
+    {
+      name: 'UI/UX Design',
+      line: 'Web, mobile and admin interfaces — from user flows and wireframes to high-fidelity UI and front-end handoff.',
+    },
+    {
+      name: 'Graphic Design',
+      line: 'Logos, brand identity, posters, ad creatives, brochures and pitch decks with a consistent visual voice.',
+    },
+    // TODO: placeholder line — Video Editing isn't on the résumé yet.
     { name: 'Video Editing', line: 'Pacing, colour and sound that keep people watching to the last frame.' },
   ],
-  email: 'hello@gopika.design',
-  resumeUrl: '/gopika-resume.pdf',
+  email: 'gopikaghoshh@gmail.com',
+  /**
+   * Path to a downloadable résumé in /public. Empty = no download button.
+   * (Hidden for now: the current résumé includes a phone number.)
+   */
+  resumeUrl: '',
   socials: [
-    { label: 'LinkedIn', url: 'https://www.linkedin.com/' },
-    { label: 'Behance', url: 'https://www.behance.net/' },
-    { label: 'Dribbble', url: 'https://dribbble.com/' },
-    { label: 'Vimeo', url: 'https://vimeo.com/' },
+    { label: 'LinkedIn', url: 'https://www.linkedin.com/in/gopika-ghosh/' },
+    { label: 'Behance', url: 'https://www.behance.net/gopikaGhoshh' },
   ],
 } as const

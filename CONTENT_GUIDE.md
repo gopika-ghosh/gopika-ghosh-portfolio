@@ -110,6 +110,7 @@ Your photo is `site.photo` (currently `public/images/gopika.webp`). Portrait ori
 - **Moving a category to another planet:** put the `works` chapter on any planet, and the moons go with it. For example, to have video work orbit Saturn, set `station: 'saturn'` on the video chapter (and move the experience chapter elsewhere).
 - **Experience** markers sit on Saturn's rings. On a planet without rings, they circle the planet instead.
 - **Skills:** the labelled tool rocks only appear when the skills chapter is at the `asteroids` station. Choose which skill group floats with `floatingSkillGroup` in `skills.ts`.
+- **Testimonials:** while `testimonials.ts` has no quotes and no awards, that stop is skipped automatically and the camera flies past Neptune. Add one entry and the stop returns.
 - **Splitting Uranus and Neptune:** to give testimonials and awards separate stops, add a chapter with `station: 'uranus'`.
 
 ## Contact details and résumé

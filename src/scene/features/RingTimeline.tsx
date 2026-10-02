@@ -70,7 +70,7 @@ export function RingTimeline({ roles, radius, chapterIndex }: Props) {
                 <span className="size-2.5 rounded-full bg-sun shadow-[0_0_14px_3px_rgb(255_179_92/0.75)]" />
                 <span className="mt-2 rounded-full border border-white/12 bg-black/50 px-3 py-1 text-center text-[11px] leading-tight whitespace-nowrap backdrop-blur-sm">
                   <span className="text-sun/90 tabular-nums">{r.start}</span>
-                  <span className="text-white/85"> · {r.company}</span>
+                  <span className="text-white/85"> · {r.short ?? r.company}</span>
                 </span>
               </div>
             </Html>

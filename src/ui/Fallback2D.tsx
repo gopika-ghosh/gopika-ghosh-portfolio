@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { bodies, bodyList } from '../config/bodies'
-import { chapters } from '../content/chapters'
+import { journeyChapters as chapters } from '../content'
 import { site } from '../content/site'
 import type { StationId } from '../content/types'
 import { Content } from './Chapters'

@@ -8,7 +8,7 @@
  */
 import type { Plugin } from 'vite'
 import { site } from '../src/content/site'
-import { chapters } from '../src/content/chapters'
+import { journeyChapters as chapters } from '../src/content'
 import { works } from '../src/content/works'
 import { experience } from '../src/content/experience'
 import { skills } from '../src/content/skills'
@@ -20,11 +20,11 @@ const esc = (s: string) =>
 const abs = (path: string) => (/^https?:/.test(path) ? path : `${site.url}${path}`)
 
 function head() {
-  const title = `${site.name} — ${site.title}`
+  const title = `${site.fullName} — ${site.title}`
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Person',
-    name: site.name,
+    name: site.fullName,
     url: site.url,
     image: abs(site.photo),
     jobTitle: site.title,
@@ -90,7 +90,7 @@ function noscript() {
         body = skills.map((g) => `<h3>${esc(g.name)}</h3><p>${g.items.map(esc).join(', ')}</p>`).join('')
       if (c.kind === 'timeline')
         body = `<ol>${experience
-          .map((r) => `<li><strong>${esc(r.title)}, ${esc(r.company)}</strong> (${esc(r.start)}–${esc(r.end)}). ${esc(r.summary)}</li>`)
+          .map((r) => `<li><strong>${esc(r.title)}, ${esc(r.company)}</strong> (${esc(r.start)}–${esc(r.end)}).${r.summary ? ' ' + esc(r.summary) : ''}</li>`)
           .join('')}</ol>`
       if (c.kind === 'testimonials')
         body =
@@ -99,11 +99,11 @@ function noscript() {
       if (c.kind === 'contact')
         body = `<p><a href="mailto:${esc(site.email)}">${esc(site.email)}</a></p><ul>${site.socials
           .map((s) => `<li><a href="${esc(s.url)}">${esc(s.label)}</a></li>`)
-          .join('')}</ul><p><a href="${esc(site.resumeUrl)}">Résumé (PDF)</a></p>`
+          .join('')}</ul>${site.resumeUrl ? `<p><a href="${esc(site.resumeUrl)}">Résumé (PDF)</a></p>` : ''}`
       return `<section id="${esc(c.id)}"><h2>${esc(c.heading)}</h2><p>${esc(c.intro)}</p>${body}</section>`
     })
     .join('')
-  return `<noscript><style>.noscript{max-width:42rem;margin:0 auto;padding:3rem 1.5rem;font:16px/1.6 system-ui,sans-serif;color:#f3efe8}.noscript a{color:#ffb35c}</style><div class="noscript"><h1>${esc(site.name)}</h1><p>${esc(site.title)}</p><p>${esc(site.tagline)}</p>${sections}</div></noscript>`
+  return `<noscript><style>.noscript{max-width:42rem;margin:0 auto;padding:3rem 1.5rem;font:16px/1.6 system-ui,sans-serif;color:#f3efe8}.noscript a{color:#ffb35c}</style><div class="noscript"><h1>${esc(site.fullName)}</h1><p>${esc(site.title)}</p><p>${esc(site.tagline)}</p>${sections}</div></noscript>`
 }
 
 export function seo(): Plugin {

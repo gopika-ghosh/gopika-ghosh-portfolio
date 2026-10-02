@@ -19,3 +19,14 @@ export const categoryLabel: Record<WorkCategory, string> = {
   graphic: 'Graphic Design',
   video: 'Video Editing',
 }
+
+import { chapters } from './chapters'
+import { awards, testimonials } from './testimonials'
+
+/**
+ * The chapters actually shown. A testimonials stop with nothing to show is skipped
+ * (the camera flies past Neptune) and returns as soon as a quote or award is added.
+ */
+export const journeyChapters = chapters.filter(
+  (c) => c.kind !== 'testimonials' || testimonials.length > 0 || awards.length > 0,
+)

@@ -97,6 +97,14 @@ export interface Work {
   images: string[]
   video?: VideoSource
   externalLink?: { label: string; url: string }
+  /**
+   * Instagram: the account's profile (shown as "See more on Instagram") and specific
+   * posts/reels to embed in the project panel (instagram.com/p/… or /reel/… links).
+   * Embeds load only when the visitor clicks them.
+   */
+  instagram?: { profile?: string; posts?: string[] }
+  /** Extra links shown in the project panel, e.g. a LinkedIn page. */
+  links?: { label: string; url: string }[]
   /** Featured works get slightly larger moons and are listed first. */
   featured?: boolean
   /** Optional short tags, e.g. ["Fintech", "iOS"]. */
@@ -105,13 +113,16 @@ export interface Work {
 
 export interface Role {
   company: string
+  /** Optional short name for the marker on the rings (defaults to `company`). */
+  short?: string
   title: string
   /** e.g. "2021" */
   start: string
   /** e.g. "2024" or "Present" */
   end: string
   location?: string
-  summary: string
+  /** One line; optional (education entries often don't need one). */
+  summary?: string
 }
 
 export interface SkillGroup {

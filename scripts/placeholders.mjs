@@ -2,7 +2,6 @@
  * Generates placeholder imagery so the site looks finished before real assets exist:
  *   public/images/works/<id>/thumb.webp + 01.webp …   (from src/content/works.ts)
  *   public/images/gopika.webp                          (portrait)
- *   public/gopika-resume.pdf                           (one-page stand-in)
  *
  *   npm run placeholders            # only creates missing files
  *   npm run placeholders -- --force # regenerate everything
@@ -134,31 +133,5 @@ const portrait = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="11
   <text x="450" y="1050" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" letter-spacing="6" fill="#fff" fill-opacity="0.6">PLACEHOLDER PORTRAIT</text>
 </svg>`
 if (await render(portrait, path.join(OUT, 'images/gopika.webp'), 900, 1100)) made++
-
-// A minimal one-page PDF so the résumé link works until the real file is added.
-const resume = path.join(OUT, 'gopika-resume.pdf')
-if (!existsSync(resume) || force) {
-  const text = 'Resume placeholder - replace public/gopika-resume.pdf with your CV.'
-  const stream = `BT /F1 18 Tf 72 720 Td (${text}) Tj ET`
-  const objs = [
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
-    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
-  ]
-  let pdf = '%PDF-1.4\n'
-  const offsets = []
-  objs.forEach((o, i) => {
-    offsets.push(pdf.length)
-    pdf += `${i + 1} 0 obj\n${o}\nendobj\n`
-  })
-  const xref = pdf.length
-  pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`
-  pdf += offsets.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('')
-  pdf += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`
-  await writeFile(resume, pdf)
-  made++
-}
 
 console.log(`${works.length} works found; ${made} placeholder file(s) written${force ? ' (forced)' : ''}.`)

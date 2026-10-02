@@ -55,7 +55,7 @@ export const chapters: Chapter[] = [
     dwell: 1.6,
     navLabel: 'Mars',
     heading: 'Graphic Design',
-    intro: 'Identities, editorial and campaigns with a point of view.',
+    intro: 'Brand identities, social creatives and marketing design for growing businesses.',
   },
   {
     id: 'skills',
@@ -73,7 +73,7 @@ export const chapters: Chapter[] = [
     dwell: 1.6,
     navLabel: 'Jupiter',
     heading: 'Video Editing',
-    intro: 'Rhythm, pacing and story — edits that hold attention.',
+    intro: 'Reels and short-form video for the brands I work with.',
     travel: 1.2,
   },
   {
@@ -82,7 +82,7 @@ export const chapters: Chapter[] = [
     kind: 'timeline',
     navLabel: 'Saturn',
     heading: 'Experience',
-    intro: 'The studios and teams I have orbited.',
+    intro: 'Where I have worked and learned.',
     travel: 1.2,
   },
   {

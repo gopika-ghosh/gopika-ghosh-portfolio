@@ -309,7 +309,7 @@ function Experience() {
           <h3 className="mt-0.5 text-[15px] text-white/90">
             {r.title} <span className="text-white/50">at</span> {r.company}
           </h3>
-          <p className="mt-1 hidden text-sm text-white/55 md:block">{r.summary}</p>
+          {r.summary && <p className="mt-1 hidden text-sm text-white/55 md:block">{r.summary}</p>}
         </li>
       ))}
     </ol>
@@ -341,13 +341,15 @@ function Contact({ chapter, index }: { chapter: Chapter; index: number }) {
             {s.label}
           </a>
         ))}
-        <a
-          href={site.resumeUrl}
-          download
-          className="rounded-full border border-white/20 px-4 py-1.5 text-white/85 transition hover:border-sun/60 hover:text-white"
-        >
-          Download résumé
-        </a>
+        {site.resumeUrl && (
+          <a
+            href={site.resumeUrl}
+            download
+            className="rounded-full border border-white/20 px-4 py-1.5 text-white/85 transition hover:border-sun/60 hover:text-white"
+          >
+            Download résumé
+          </a>
+        )}
       </div>
       <Credits />
     </div>

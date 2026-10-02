@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { categoryLabel, sortedWorks, workById } from '../content'
 import type { Work } from '../content/types'
+import { cleanInstagramUrl, instagramEmbed } from '../lib/instagram'
 import { parseVideo } from '../lib/video'
 import { useUi } from '../state/uiStore'
 import { useDialog } from './useDialog'
@@ -96,17 +97,9 @@ export function ProjectPanel() {
           ))}
         </div>
 
-        {work.externalLink && (
-          <a
-            href={work.externalLink.url}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-7 inline-flex items-center gap-2 rounded-full bg-sun px-5 py-2.5 text-sm font-medium text-[#1a0d02] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sun"
-          >
-            {work.externalLink.label}
-            <span aria-hidden="true">↗</span>
-          </a>
-        )}
+        <Links work={work} />
+
+        {work.instagram?.posts && work.instagram.posts.length > 0 && <InstagramPosts work={work} />}
 
         {/* The first image is the hero (unless there's a video), the rest form the gallery. */}
         <div className="mt-8 grid gap-3">
@@ -124,6 +117,101 @@ export function ProjectPanel() {
         <Neighbours work={work} />
       </div>
     </div>
+  )
+}
+
+/** Primary link (filled) plus Instagram profile and any extra links (outlined). */
+function Links({ work }: { work: Work }) {
+  const secondary = [
+    ...(work.instagram?.profile ? [{ label: 'See more on Instagram', url: cleanInstagramUrl(work.instagram.profile) }] : []),
+    ...(work.links ?? []),
+  ]
+  if (!work.externalLink && !secondary.length) return null
+  return (
+    <div className="mt-7 flex flex-wrap gap-3">
+      {work.externalLink && (
+        <a
+          href={work.externalLink.url}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-full bg-sun px-5 py-2.5 text-sm font-medium text-[#1a0d02] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sun"
+        >
+          {work.externalLink.label}
+          <span aria-hidden="true">↗</span>
+        </a>
+      )}
+      {secondary.map((l) => (
+        <a
+          key={l.url}
+          href={l.url}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm text-white/85 transition hover:border-sun/60 hover:text-white"
+        >
+          {l.label}
+          <span aria-hidden="true">↗</span>
+        </a>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Embedded Instagram posts/reels. Each loads only when clicked, so Instagram's
+ * player (and its tracking) never loads unless the visitor asks for it.
+ */
+function InstagramPosts({ work }: { work: Work }) {
+  const posts = (work.instagram?.posts ?? []).map((url) => ({ url, embed: instagramEmbed(url) })).filter((p) => p.embed)
+  if (!posts.length) return null
+  return (
+    <section className="mt-8" aria-label="On Instagram">
+      <h3 className="mb-3 text-[11px] tracking-[0.25em] text-white/45 uppercase">On Instagram</h3>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {posts.map((p, i) => (
+          <InstagramEmbed key={p.url} src={p.embed!.src} kind={p.embed!.kind} index={i + 1} title={work.title} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function InstagramEmbed({ src, kind, index, title }: { src: string; kind: 'post' | 'reel'; index: number; title: string }) {
+  const [loaded, setLoaded] = useState(false)
+  if (loaded) {
+    return (
+      <iframe
+        src={src}
+        title={`${title} — Instagram ${kind} ${index}`}
+        loading="lazy"
+        allow="autoplay; encrypted-media; picture-in-picture"
+        className="h-[560px] w-full rounded-xl border-0 bg-white"
+      />
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => setLoaded(true)}
+      className="group grid aspect-[4/5] w-full place-items-center rounded-xl border border-white/10 bg-gradient-to-br from-[#2a1a3a] via-[#3a1f2a] to-[#4a2a14] text-sm text-white/80 transition hover:border-sun/60"
+    >
+      <span className="flex flex-col items-center gap-3">
+        <span className="grid size-14 place-items-center rounded-full bg-black/35 ring-1 ring-white/40 transition group-hover:scale-105 group-hover:ring-sun">
+          {kind === 'reel' ? (
+            <svg viewBox="0 0 24 24" className="ml-1 size-5 fill-white" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="5" />
+              <circle cx="12" cy="12" r="4" />
+              <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
+            </svg>
+          )}
+        </span>
+        {kind === 'reel' ? 'Play reel' : 'View post'} {index}
+        <span className="text-[11px] text-white/45">Loads from Instagram</span>
+      </span>
+    </button>
   )
 }
 
