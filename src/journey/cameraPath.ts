@@ -37,6 +37,8 @@ export const createPose = (): Pose => ({
 export const frameExtent: Partial<Record<BodyId, number>> = {}
 /** Camera distance per unit of frame extent. */
 const EXTENT_DISTANCE = 2.05
+/** Portrait screens are narrow: stand a little further back so orbits and rings fit side to side. */
+const PORTRAIT_BACKOFF = 1.22
 
 const UP = new Vector3(0, 1, 0)
 const _anchor = new Vector3()
@@ -79,7 +81,9 @@ export function stationPose(station: Station, portrait: boolean, out: Pose): Pos
 
   // The body sits off-centre (screen offset), so the far side has less room: back off accordingly.
   const room = 1 - Math.min(0.6, Math.max(Math.abs(out.screen.x), Math.abs(out.screen.y)))
-  const distance = Math.max(station.distance * body.radius, ((frameExtent[station.body] ?? 0) * EXTENT_DISTANCE) / room)
+  const distance =
+    Math.max(station.distance * body.radius, ((frameExtent[station.body] ?? 0) * EXTENT_DISTANCE) / room) *
+    (portrait ? PORTRAIT_BACKOFF : 1)
   out.position.copy(out.focus).addScaledVector(_dir, distance)
   return out
 }

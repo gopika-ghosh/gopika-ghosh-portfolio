@@ -69,7 +69,7 @@ export function ProjectPanel() {
       </header>
 
       {/* Keyed by work so switching projects replays the reveal. */}
-      <div key={work.id} className="flex-1 overflow-y-auto overscroll-contain px-6 pb-10 md:px-10">
+      <div key={work.id} className="flex-1 overflow-y-auto overscroll-contain px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:px-10">
         <h2 data-reveal style={{ '--i': 1 } as CSSProperties} id="project-title" className="font-display text-4xl leading-[1.05] md:text-5xl">
           {work.title}
         </h2>

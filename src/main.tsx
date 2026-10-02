@@ -6,6 +6,10 @@ import '@fontsource-variable/inter'
 import 'lenis/dist/lenis.css'
 import './index.css'
 import App from './App'
+import { reducedMotion } from './lib/env'
+
+// Lets CSS honour the ?reduced test flag as well as the OS setting.
+if (reducedMotion) document.documentElement.classList.add('reduced-motion')
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

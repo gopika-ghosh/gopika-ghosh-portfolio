@@ -10,6 +10,9 @@ interface UiState {
   /** True once textures are loaded and shaders compiled — the loading screen can leave. */
   ready: boolean
   setReady: () => void
+  /** Asset loading progress 0–100, reported from inside the 3D chunk. */
+  progress: number
+  setProgress: (p: number) => void
 
   /** The work whose project panel is open (the camera focuses its moon). */
   openWorkId: string | null
@@ -31,6 +34,8 @@ export const useUi = create<UiState>((set) => ({
   setActive: (active) => set({ active }),
   ready: false,
   setReady: () => set({ ready: true }),
+  progress: 0,
+  setProgress: (progress) => set({ progress }),
   openWorkId: null,
   // Opening a work from the grid replaces the grid with the panel.
   openWork: (id) => set({ openWorkId: id, viewAll: null }),

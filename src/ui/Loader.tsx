@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import { useProgress } from '@react-three/drei'
 import { site } from '../content/site'
 import { useUi } from '../state/uiStore'
 
 /**
- * Designed loading screen. Progress is real (three's loading manager, via drei's
- * useProgress) and never runs backwards; it only leaves once the scene is ready —
+ * Designed loading screen. Progress is real (three's loading manager, reported by
+ * scene/ProgressReporter) and never runs backwards; it only leaves once the scene is ready —
  * textures loaded and shaders compiled — so the reveal is always a finished frame.
  */
 export function Loader() {
-  const { progress } = useProgress()
+  // Reported by the 3D chunk (kept out of this file so three.js isn't in the main bundle).
+  const progress = useUi((s) => s.progress)
   const ready = useUi((s) => s.ready)
   const [gone, setGone] = useState(false)
   const shown = useRef(0)

@@ -2,10 +2,8 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { AdditiveBlending, BackSide, Color, DoubleSide, MathUtils, Vector2, Vector3, type Group, type Mesh } from 'three'
 import type { BodyDef, BodyLook } from '../../config/bodies'
-import { quality } from '../../config/quality'
-import { useUi } from '../../state/uiStore'
 import { bodyPosition } from '../orbits'
-import { useHiRes, useTextures } from '../textures'
+import { useTextures } from '../textures'
 import { frameExtent } from '../../journey/cameraPath'
 import { useShaderMaterial } from '../useShaderMaterial'
 import planetVert from '../shaders/planet.vert.glsl?raw'
@@ -19,8 +17,6 @@ const UP = new Vector3(0, 1, 0)
 
 interface Props {
   def: BodyDef & { look: BodyLook }
-  /** Chapter indices that visit this planet; 4K maps load when the viewer is within one stop. */
-  stops: number[]
   /** Rendered in the planet's orbital frame (follows it, not tilted) — e.g. moons. */
   children?: ReactNode
   /** Rendered in the planet's tilted equatorial frame — e.g. markers on the rings. */
@@ -31,7 +27,7 @@ interface Props {
  * A textured planet following its orbit. Position comes from the shared orbit clock,
  * so it always matches what the camera rig computes.
  */
-export function Planet({ def, stops, children, equatorial }: Props) {
+export function Planet({ def, children, equatorial }: Props) {
   const group = useRef<Group>(null)
   const tilt = useRef<Group>(null)
   const body = useRef<Mesh>(null)
@@ -39,12 +35,8 @@ export function Planet({ def, stops, children, equatorial }: Props) {
   const isEarth = !!look.textures.night
   const rings = def.rings && look.textures.rings ? def.rings : undefined
 
-  // 2K up-front (suspends; counted by the loading screen) …
+  // Loaded and uploaded behind the loading screen (4K for heroes on capable devices).
   const lo = useTextures(look.textures)
-  // … 4K once the journey gets near this planet (desktop only).
-  const active = useUi((s) => s.active)
-  const near = quality.hiResTextures && stops.some((i) => Math.abs(i - active) <= 1)
-  const hi = useHiRes(look.textures, near)
 
   // Materials are created once (see useShaderMaterial for why not JSX <shaderMaterial>);
   // per-frame values and 4K texture swaps write straight into their uniforms.
@@ -107,14 +99,6 @@ export function Planet({ def, stops, children, equatorial }: Props) {
     const ringExtent = def.radius * rings.outer * 0.8
     frameExtent[def.id] = Math.max(frameExtent[def.id] ?? 0, ringExtent)
   }, [rings, def.id, def.radius])
-
-  // Swap in 4K maps as they arrive.
-  useEffect(() => {
-    if (!hi) return
-    if (hi.map) u.uMap.value = hi.map
-    if (hi.night) u.uNight.value = hi.night
-    if (hi.clouds) u.uClouds.value = hi.clouds
-  }, [hi, u])
 
   useFrame((_, dt) => {
     if (!group.current || !body.current || !tilt.current) return

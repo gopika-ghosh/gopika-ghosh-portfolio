@@ -1,14 +1,12 @@
+import { finePointer, reducedMotion } from '../lib/env'
+
 /**
  * Normalised pointer position (-1…1, +y up), for subtle camera parallax.
  * Only tracks precise pointers; stays at 0 on touch devices and for reduced motion.
  */
 export const pointer = { x: 0, y: 0 }
 
-if (
-  typeof window !== 'undefined' &&
-  window.matchMedia('(hover: hover) and (pointer: fine)').matches &&
-  !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-) {
+if (finePointer && !reducedMotion) {
   window.addEventListener(
     'pointermove',
     (e) => {

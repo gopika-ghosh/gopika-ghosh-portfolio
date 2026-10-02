@@ -3,11 +3,11 @@ import { useFrame } from '@react-three/fiber'
 import { MathUtils, Vector3, type PerspectiveCamera } from 'three'
 import { easing } from 'maath'
 import { stations } from '../config/stations'
-import { cameraMotion } from './cameraMotion'
 import { pointer } from './pointer'
 import { blendPoses, createPose, easeFlight, stationPose } from './cameraPath'
 import { scrollStore } from './scrollStore'
-import { locate, type Segment, type Timeline } from './timeline'
+import { activeIndex, locate, type Segment, type Timeline } from './timeline'
+import { reducedMotion } from '../lib/env'
 import { moonRegistry, moreKey } from '../scene/moons/registry'
 import { useUi } from '../state/uiStore'
 import { workById } from '../content'
@@ -25,7 +25,6 @@ const _d = new Vector3()
 const _r = new Vector3()
 const _u = new Vector3()
 const _look = new Vector3()
-const _prev = new Vector3()
 const focusPose = createPose()
 const _moonPos = new Vector3()
 const _away = new Vector3()
@@ -41,6 +40,9 @@ const FOCUS_SMOOTH = 0.55
 /** Where the focused moon sits: left of centre (panel on the right), or high on portrait (panel below). */
 const FOCUS_SCREEN = { x: -0.42, y: 0.05 }
 const FOCUS_SCREEN_PORTRAIT = { x: 0, y: 0.5 }
+
+/** Reduced motion: how long the scene fade lasts on each side of a cut (ms). */
+const CUT_FADE_MS = 280
 
 /** Which moon (if any) the camera should be looking at. */
 function focusedMoon() {
@@ -66,6 +68,8 @@ export function CameraRig({ timeline }: { timeline: Timeline }) {
   const started = useRef(false)
   const focusK = useRef({ k: 0 })
   const lean = useRef({ x: 0, y: 0 })
+  // Reduced motion: the stop/moon currently shown, and whether a fade-cut is in progress.
+  const cut = useRef({ stop: -1, moon: undefined as unknown, busy: false })
 
   useFrame(({ camera, size }, dt) => {
     const cam = camera as PerspectiveCamera
@@ -74,6 +78,35 @@ export function CameraRig({ timeline }: { timeline: Timeline }) {
 
     // 1. Where are we along the journey?
     locate(scrollStore.u, timeline, seg)
+    let moon = focusedMoon()
+
+    // Reduced motion: no flights. Hold the current stop (or moon), and when it should change,
+    // fade the scene out, cut the camera, and fade back in.
+    if (reducedMotion) {
+      const c = cut.current
+      const wantStop = activeIndex(seg)
+      if (c.stop < 0) {
+        c.stop = wantStop
+        c.moon = moon
+      }
+      if ((wantStop !== c.stop || moon !== c.moon) && !c.busy) {
+        c.busy = true
+        const fade = document.getElementById('scene-fade')
+        if (fade) fade.style.opacity = '1'
+        window.setTimeout(() => {
+          c.stop = activeIndex(locate(scrollStore.u, timeline, seg))
+          c.moon = focusedMoon()
+          started.current = false // snap on the next frame, hidden by the fade
+          focusK.current.k = c.moon ? 1 : 0
+          if (fade) fade.style.opacity = '0'
+          c.busy = false
+        }, CUT_FADE_MS)
+      }
+      seg.from = seg.to = c.stop
+      seg.t = 0
+      moon = c.moon as typeof moon
+    }
+
     const stopA = timeline.stops[seg.from].chapter.station
     const stopB = timeline.stops[seg.to].chapter.station
 
@@ -90,8 +123,7 @@ export function CameraRig({ timeline }: { timeline: Timeline }) {
     }
 
     // 2b. Moon close-up while a project panel is open, blended over the path pose.
-    const moon = focusedMoon()
-    easing.damp(focusK.current, 'k', moon ? 1 : 0, FOCUS_SMOOTH, dt)
+    if (!reducedMotion) easing.damp(focusK.current, 'k', moon ? 1 : 0, FOCUS_SMOOTH, dt)
     const k = easeFlight(MathUtils.clamp(focusK.current.k, 0, 1))
     if (moon) {
       moon.object.getWorldPosition(_moonPos)
@@ -116,7 +148,7 @@ export function CameraRig({ timeline }: { timeline: Timeline }) {
     // scaled by distance so they feel the same at every stop. Faded out mid-flight.
     easing.damp(lean.current, 'x', pointer.x, 0.8, dt)
     easing.damp(lean.current, 'y', pointer.y, 0.8, dt)
-    const settled = seg.from === seg.to ? 1 : Math.abs(seg.t - 0.5) * 2
+    const settled = reducedMotion ? 0 : seg.from === seg.to ? 1 : Math.abs(seg.t - 0.5) * 2
     const reach = target.position.distanceTo(target.focus) * settled
     const t = performance.now() / 1000
     _side.subVectors(target.focus, target.position).cross(UP).normalize()
@@ -140,7 +172,6 @@ export function CameraRig({ timeline }: { timeline: Timeline }) {
       screen.current.x = target.screen.x
       screen.current.y = target.screen.y
       cam.fov = fov
-      _prev.copy(target.position)
       started.current = true
     } else {
       easing.damp3(cam.position, target.position, SMOOTH, dt)
@@ -151,13 +182,6 @@ export function CameraRig({ timeline }: { timeline: Timeline }) {
     }
     cam.updateProjectionMatrix()
 
-    // Motion signal for effects: speed relative to distance from what we're looking at,
-    // so a fast flight across the outer system reads the same as a fast inner one.
-    if (dt > 0) {
-      const rel = cam.position.distanceTo(_prev) / dt / Math.max(cam.position.distanceTo(focus.current), 1)
-      easing.damp(cameraMotion, 'speed', Math.min(1, Math.max(0, rel - 0.15) / 1.1), 0.25, dt)
-    }
-    _prev.copy(cam.position)
 
     // 4. Aim so the focused body lands at its screen offset (text gets the other side).
     _d.subVectors(focus.current, cam.position).normalize()

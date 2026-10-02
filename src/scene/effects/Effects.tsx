@@ -1,36 +1,34 @@
-import { useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
-import { Bloom, ChromaticAberration, EffectComposer, Noise, ToneMapping, Vignette } from '@react-three/postprocessing'
-import { BlendFunction, ToneMappingMode, type ChromaticAberrationEffect } from 'postprocessing'
-import { Vector2 } from 'three'
+import { Bloom, EffectComposer, ToneMapping } from '@react-three/postprocessing'
+import { ToneMappingMode } from 'postprocessing'
 import { quality } from '../../config/quality'
-import { cameraMotion } from '../../journey/cameraMotion'
-
-const MAX_ABERRATION = 0.0022
 
 /**
- * Post-processing stack:
- *  - Bloom on HDR values only (the Sun, its corona, bright glints) — threshold 1
- *  - Chromatic aberration that appears only during fast camera flights
- *  - Filmic tone mapping, then a soft vignette and fine film grain
+ * WebGL post-processing — deliberately minimal, measured on Intel UHD (integrated):
+ *  - Bloom on HDR values only (the Sun, its corona, bright glints), at half resolution;
+ *    a soft glow loses nothing at half res
+ *  - Filmic tone mapping
+ *
+ * Everything else is cheaper elsewhere or not worth its cost:
+ *  - Vignette and film grain are static CSS layers over the canvas (see Experience.tsx),
+ *    composited by the browser for free. As WebGL effects they cost ~35% of the frame.
+ *  - No anti-aliasing pass: soft limbs, atmospheres and grain already hide edges; MSAA cost
+ *    ~20 fps for no visible gain, and FXAA posterised the corona and gas-giant gradients.
+ *  - No chromatic aberration: barely visible, and its pass ran every frame regardless.
+ * Net: ~45 fps → ~100 fps on the same machine, visually equivalent.
  */
 export function Effects() {
-  const aberration = useRef<ChromaticAberrationEffect>(null)
-  const offset = useRef(new Vector2(0, 0))
-
-  useFrame(() => {
-    const a = cameraMotion.speed * MAX_ABERRATION
-    offset.current.set(a, a * 0.6)
-    if (aberration.current) aberration.current.offset = offset.current
-  })
-
   return (
-    <EffectComposer multisampling={quality.msaa}>
-      <Bloom mipmapBlur luminanceThreshold={1} luminanceSmoothing={0.1} intensity={0.75} radius={0.62} />
-      <ChromaticAberration ref={aberration} offset={offset.current} radialModulation modulationOffset={0.35} />
+    <EffectComposer multisampling={0}>
+      <Bloom
+        mipmapBlur
+        levels={quality.bloomLevels}
+        resolutionScale={0.5}
+        luminanceThreshold={1}
+        luminanceSmoothing={0.1}
+        intensity={0.75}
+        radius={0.62}
+      />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-      <Vignette offset={0.28} darkness={0.72} />
-      {quality.grain ? <Noise premultiply blendFunction={BlendFunction.ADD} opacity={0.18} /> : <></>}
     </EffectComposer>
   )
 }

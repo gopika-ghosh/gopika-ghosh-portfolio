@@ -208,7 +208,8 @@ function Moon({ slot, category, map, active, chapterIndex, planetRadius, moreCou
                   overLabel.current = false
                   if (useUi.getState().hovered === key) useUi.getState().setHovered(null)
                 }}
-                className="group flex items-center gap-2 rounded-full border border-white/10 bg-black/45 py-1 pr-3 pl-1 whitespace-nowrap backdrop-blur-sm transition-colors hover:border-sun/60"
+                aria-label={work ? work.title : 'View all projects'}
+                className="group flex items-center gap-2 rounded-full border border-white/10 bg-black/45 p-1 whitespace-nowrap backdrop-blur-sm transition-colors hover:border-sun/60 sm:pr-3"
               >
                 {work ? (
                   <img src={work.thumbnail} alt="" className="size-7 rounded-full object-cover ring-1 ring-sun/40" />
@@ -217,7 +218,8 @@ function Moon({ slot, category, map, active, chapterIndex, planetRadius, moreCou
                     +{moreCount}
                   </span>
                 )}
-                <span className="text-[11px] leading-tight text-white/85">
+                {/* Phones show just the thumbnail; the full list sits right below in the overlay. */}
+                <span className="hidden text-[11px] leading-tight text-white/85 sm:inline">
                   {work ? work.title : 'View all'}
                   {work && <span className="ml-1.5 text-white/40">{work.year}</span>}
                 </span>

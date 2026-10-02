@@ -51,6 +51,7 @@ export function Nav({ timeline }: { timeline: Timeline }) {
       <button
         type="button"
         onClick={() => go(0)}
+        style={{ marginTop: 'env(safe-area-inset-top)' }}
         className={`fixed top-5 left-6 z-30 font-display text-xl tracking-wide text-white/85 transition-colors hover:text-white md:top-7 md:left-10 ${fade}`}
         aria-label={`${site.name} — back to the start`}
       >
@@ -59,7 +60,10 @@ export function Nav({ timeline }: { timeline: Timeline }) {
       </button>
 
       {/* Top-right controls: sound everywhere, chapter menu on phones */}
-      <div className={`fixed top-4 right-4 z-30 flex items-center gap-2 md:top-6 md:right-8 ${fade}`}>
+      <div
+        style={{ marginTop: 'env(safe-area-inset-top)' }}
+        className={`fixed top-4 right-4 z-30 flex items-center gap-2 md:top-6 md:right-8 ${fade}`}
+      >
         <SoundToggle />
         <button
           type="button"

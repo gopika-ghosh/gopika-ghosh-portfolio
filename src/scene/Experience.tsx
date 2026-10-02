@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { PerformanceMonitor } from '@react-three/drei'
 import { bodyList, type BodyDef, type BodyLook } from '../config/bodies'
@@ -7,6 +7,7 @@ import { CameraRig } from '../journey/CameraRig'
 import type { Timeline } from '../journey/timeline'
 import { FrameDriver } from './FrameDriver'
 import { OrbitClock } from './OrbitClock'
+import { ProgressReporter } from './ProgressReporter'
 import { Ready } from './Ready'
 import { PreloadTextures, type TextureSpec } from './textures'
 import { AsteroidBelt } from './bodies/AsteroidBelt'
@@ -31,25 +32,29 @@ const allTextures: TextureSpec[] = [
 ]
 
 /** The fixed, full-screen WebGL layer behind the scrolling HTML. */
-export function Experience({ timeline }: { timeline: Timeline }) {
+export function Experience({ timeline, onContextLost }: { timeline: Timeline; onContextLost?: (e: unknown) => void }) {
   // Adaptive resolution: drop pixel ratio when frames slow down, restore it when there's headroom.
   const [dpr, setDpr] = useState(MAX_DPR)
 
-  // Which chapters visit each planet (drives 4K texture streaming).
-  const stopsByBody = useMemo(() => {
-    const map: Record<string, number[]> = {}
-    for (const s of timeline.stops) (map[s.chapter.station] ??= []).push(s.index)
-    return map
-  }, [timeline])
-
   return (
     <div className="fixed inset-0" aria-hidden="true">
+      <ProgressReporter />
       <Canvas
         frameloop="never"
         dpr={dpr}
         camera={{ fov: 45, near: 0.3, far: 6000, position: [0, 150, 120] }}
         // Anti-aliasing is done by the post-processing composer (MSAA), not the default framebuffer.
         gl={{ antialias: false, powerPreference: 'high-performance', alpha: false, stencil: false }}
+        // If the GPU drops the context (driver reset, memory pressure) and doesn't give it
+        // back promptly, switch to the 2D version rather than leave a frozen black canvas.
+        onCreated={({ gl }) => {
+          let timer = 0
+          gl.domElement.addEventListener('webglcontextlost', (e) => {
+            e.preventDefault()
+            timer = window.setTimeout(() => onContextLost?.(e), 2500)
+          })
+          gl.domElement.addEventListener('webglcontextrestored', () => window.clearTimeout(timer))
+        }}
         // Clicking empty space closes an open project. Only clicks on the canvas itself count:
         // DOM labels (moon titles) live in the same event container and must not close it.
         onPointerMissed={(e) => {
@@ -80,7 +85,6 @@ export function Experience({ timeline }: { timeline: Timeline }) {
               <Planet
                 key={b.id}
                 def={b}
-                stops={stopsByBody[b.id] ?? []}
                 equatorial={
                   history && (
                     <RingTimeline
@@ -114,6 +118,11 @@ export function Experience({ timeline }: { timeline: Timeline }) {
           <Ready />
         </Suspense>
       </Canvas>
+      {/* Vignette and film grain as plain CSS layers: free to composite, unlike WebGL passes. */}
+      <div className="scene-vignette pointer-events-none absolute inset-0" />
+      {quality.grain && <div className="scene-grain pointer-events-none absolute inset-0" />}
+      {/* Reduced motion: camera cuts happen behind this fade (see CameraRig). */}
+      <div id="scene-fade" className="pointer-events-none absolute inset-0 bg-[#030409] opacity-0 transition-opacity duration-300" />
     </div>
   )
 }

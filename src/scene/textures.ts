@@ -1,8 +1,9 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useLayoutEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 import { suspend } from 'suspend-react'
 import { NoColorSpace, SRGBColorSpace, type Texture, type WebGLRenderer } from 'three'
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
+import { quality } from '../config/quality'
 
 /**
  * KTX2 texture loading.
@@ -10,7 +11,9 @@ import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
  * - One shared loader (one transcoder worker pool) for the whole app.
  * - It reports to three's DefaultLoadingManager, so drei's useProgress — and the
  *   loading screen — see real progress.
- * - 2K maps load up-front (suspending); 4K hero maps stream in later via useHiRes().
+ * - Everything loads and uploads behind the loading screen: 4K for hero planets on
+ *   capable devices, 2K otherwise. (Streaming 4K in mid-journey was measured to cause
+ *   0.3–2 s GPU stalls on integrated graphics, so it isn't done.)
  */
 
 export type TextureKind = 'color' | 'data'
@@ -22,6 +25,9 @@ export interface TextureSpec {
   hero?: boolean
 }
 export type Res = '2k' | '4k'
+
+/** Resolution to use for a texture on this device. */
+export const resFor = (spec: TextureSpec): Res => (spec.hero && quality.hiResTextures ? '4k' : '2k')
 
 let loader: KTX2Loader | null = null
 const cache = new Map<string, Promise<Texture>>()
@@ -42,6 +48,9 @@ export function loadTexture(gl: WebGLRenderer, spec: TextureSpec, res: Res): Pro
       .then((tex) => {
         tex.colorSpace = spec.kind === 'color' ? SRGBColorSpace : NoColorSpace
         tex.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy())
+        // Upload to the GPU now, while the loading screen is up. Creating large textures can
+        // stall the GPU for hundreds of ms on some drivers; that must never happen mid-journey.
+        gl.initTexture(tex)
         return tex
       })
     cache.set(url, p)
@@ -56,50 +65,26 @@ type Loaded<S extends SpecMap> = { [K in keyof S]: undefined extends S[K] ? Text
 const present = <S extends SpecMap>(specs: S) =>
   (Object.keys(specs) as (keyof S & string)[]).filter((k) => specs[k] !== undefined)
 
-/** Load a set of 2K textures, suspending until all are ready. */
+/** Load a set of textures (at this device's resolution), suspending until all are ready. */
 export function useTextures<S extends SpecMap>(specs: S): Loaded<S> {
   const gl = useThree((s) => s.gl)
   const keys = present(specs)
   const textures = suspend(
-    () => Promise.all(keys.map((k) => loadTexture(gl, specs[k]!, '2k'))),
-    ['ktx2', ...keys.map((k) => specs[k]!.name)],
+    () => Promise.all(keys.map((k) => loadTexture(gl, specs[k]!, resFor(specs[k]!)))),
+    ['ktx2', ...keys.map((k) => `${resFor(specs[k]!)}/${specs[k]!.name}`)],
   )
   return Object.fromEntries(keys.map((k, i) => [k, textures[i]])) as Loaded<S>
 }
 
 /**
- * Returns 4K versions of the hero textures once `wanted` becomes true (and stays
- * with them afterwards). Until then returns null, and the 2K maps keep showing.
- */
-export function useHiRes<S extends SpecMap>(specs: S, wanted: boolean) {
-  const gl = useThree((s) => s.gl)
-  const [hi, setHi] = useState<Partial<Record<keyof S, Texture>> | null>(null)
-  useEffect(() => {
-    if (!wanted || hi) return
-    let cancelled = false
-    const keys = present(specs).filter((k) => specs[k]!.hero)
-    if (!keys.length) return
-    Promise.all(keys.map((k) => loadTexture(gl, specs[k]!, '4k')))
-      .then((list) => {
-        if (!cancelled) setHi(Object.fromEntries(keys.map((k, i) => [k, list[i]])) as Partial<Record<keyof S, Texture>>)
-      })
-      .catch((e) => console.warn('[textures] 4K upgrade failed, keeping 2K', e))
-    return () => {
-      cancelled = true
-    }
-  }, [wanted, hi, specs, gl])
-  return hi
-}
-
-/**
- * Starts every 2K download at once. Without this, sibling components inside one
+ * Starts every texture download at once. Without this, sibling components inside one
  * Suspense boundary would suspend one after another and load as a waterfall.
  * Mount it outside the Suspense boundary that uses the textures.
  */
 export function PreloadTextures({ specs }: { specs: TextureSpec[] }) {
   const gl = useThree((s) => s.gl)
   useLayoutEffect(() => {
-    for (const spec of specs) loadTexture(gl, spec, '2k').catch(() => undefined)
+    for (const spec of specs) loadTexture(gl, spec, resFor(spec)).catch(() => undefined)
   }, [gl, specs])
   return null
 }

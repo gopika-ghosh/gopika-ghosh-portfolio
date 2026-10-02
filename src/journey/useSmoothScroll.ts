@@ -5,6 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { scrollStore } from './scrollStore'
 import { activeIndex, locate, type Segment, type Timeline } from './timeline'
 import { isModalOpen, useUi } from '../state/uiStore'
+import { reducedMotion } from '../lib/env'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -20,6 +21,11 @@ const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2
 /** Glide to a scroll position (in units). Used by snapping, keyboard and (later) nav. */
 export function glideTo(u: number, duration?: number) {
   if (!lenis) return
+  // Reduced motion: jump instead of glide (the camera fades rather than flies).
+  if (reducedMotion) {
+    lenis.scrollTo(u * scrollStore.unit, { immediate: true, force: true })
+    return
+  }
   const d = duration ?? Math.min(2.6, 0.9 + Math.abs(u - scrollStore.u) * 0.35)
   scrollStore.gliding = true
   lenis.scrollTo(u * scrollStore.unit, {
@@ -66,7 +72,8 @@ export function useSmoothScroll(timeline: Timeline) {
     history.scrollRestoration = 'manual'
     window.scrollTo(0, 0)
     const linked = timeline.stops.find((s) => `#${s.chapter.id}` === window.location.hash && s.index > 0)
-    lenis = new Lenis({ autoRaf: false, lerp: 0.085, wheelMultiplier: 0.9 })
+    // Reduced motion: native wheel scrolling, no inertia.
+    lenis = new Lenis({ autoRaf: false, lerp: 0.085, wheelMultiplier: 0.9, smoothWheel: !reducedMotion })
     // Scrolling runs only once the scene is ready, and pauses while a project panel or grid is open.
     const syncLock = () => {
       const s = useUi.getState()

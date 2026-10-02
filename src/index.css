@@ -149,60 +149,57 @@ main p {
   }
 }
 
-/* ── Custom cursor (fine pointers only, see Cursor.tsx) ── */
-html.has-custom-cursor,
-html.has-custom-cursor * {
-  cursor: none !important;
+/* ── Reduced motion ─────────────────────────────────────────────────────
+   Keep fades (they carry meaning), drop movement, blur and looping animation. */
+html.reduced-motion [data-reveal],
+html.reduced-motion .reveal-letter {
+  transform: none !important;
+  filter: none !important;
 }
-html.has-custom-cursor iframe,
-html.has-custom-cursor input,
-html.has-custom-cursor textarea {
-  cursor: auto !important;
+html.reduced-motion [data-state='in'] [data-reveal],
+html.reduced-motion [data-state='in'] .reveal-letter {
+  transition-delay: 0s !important;
+  transition-duration: 0.4s !important;
 }
-.cursor-dot,
-.cursor-ring,
-.cursor-label {
-  position: fixed;
-  top: 0;
-  left: 0;
-  will-change: transform;
+html.reduced-motion .reveal-rule {
+  transition: none !important;
 }
-.cursor-dot {
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  border-radius: 9999px;
-  background: #fff;
-  mix-blend-mode: difference;
-  transition: opacity 0.3s;
+html.reduced-motion .scroll-cue::after,
+html.reduced-motion .sound-bar {
+  animation: none !important;
 }
-.cursor-ring {
-  width: 34px;
-  height: 34px;
-  margin: -17px 0 0 -17px;
-  border-radius: 9999px;
-  border: 1px solid rgb(255 255 255 / 0.45);
-  transition:
-    opacity 0.3s,
-    border-color 0.3s,
-    background-color 0.3s;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
 }
-.cursor-ring[data-mode='ui'] {
-  border-color: rgb(255 179 92 / 0.7);
+
+/* ── 2D fallback: a starfield painted in CSS ── */
+.fallback-sky {
+  background-color: var(--color-space);
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgb(255 255 255 / 0.7), transparent 60%),
+    radial-gradient(1px 1px at 72% 12%, rgb(255 255 255 / 0.55), transparent 60%),
+    radial-gradient(1.5px 1.5px at 38% 62%, rgb(255 244 227 / 0.6), transparent 60%),
+    radial-gradient(1px 1px at 88% 44%, rgb(202 216 255 / 0.6), transparent 60%),
+    radial-gradient(1px 1px at 22% 82%, rgb(255 255 255 / 0.5), transparent 60%),
+    radial-gradient(1px 1px at 58% 34%, rgb(255 255 255 / 0.45), transparent 60%),
+    radial-gradient(1.5px 1.5px at 92% 86%, rgb(255 225 189 / 0.55), transparent 60%),
+    radial-gradient(1px 1px at 6% 52%, rgb(255 255 255 / 0.4), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgb(255 140 60 / 0.08), transparent 70%);
+  background-size: 420px 420px, 380px 380px, 520px 520px, 460px 460px, 400px 400px, 340px 340px, 560px 560px, 300px 300px, 100% 100%;
+  background-attachment: fixed;
 }
-.cursor-ring[data-mode='moon'] {
-  border-color: rgb(255 179 92 / 0.85);
-  background-color: rgb(255 179 92 / 0.08);
+
+/* ── Scene finish (CSS, over the canvas) ──
+   A soft vignette and a fine static grain. Done in CSS rather than as WebGL post-processing:
+   the browser composites these layers almost for free. */
+.scene-vignette {
+  background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.55) 100%);
 }
-.cursor-label {
-  display: block;
-  margin-top: 50px;
-  translate: -50% 0;
-  font-size: 10px;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--color-sun);
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity 0.25s;
+.scene-grain {
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }

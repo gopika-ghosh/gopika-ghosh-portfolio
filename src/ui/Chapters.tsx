@@ -67,7 +67,11 @@ function ChapterSection({ stop }: { stop: Stop }) {
   )
 }
 
-function Content({ chapter, index }: { chapter: Chapter; index: number }) {
+/**
+ * A chapter's content. `page` renders the static (no-WebGL) variant: works as a card
+ * grid instead of a list next to moons.
+ */
+export function Content({ chapter, index, page }: { chapter: Chapter; index: number; page?: boolean }) {
   switch (chapter.kind) {
     case 'intro':
       return <Intro />
@@ -85,8 +89,8 @@ function Content({ chapter, index }: { chapter: Chapter; index: number }) {
       )
     case 'works':
       return (
-        <Panel chapter={chapter} index={index}>
-          <WorksList chapter={chapter} />
+        <Panel chapter={chapter} index={index} wide={page}>
+          {page ? <WorksGrid chapter={chapter} /> : <WorksList chapter={chapter} />}
         </Panel>
       )
     case 'skills':
@@ -242,6 +246,34 @@ function WorksList({ chapter }: { chapter: Chapter }) {
         )}
       </div>
     </div>
+  )
+}
+
+/** Static variant: every work as a card. */
+function WorksGrid({ chapter }: { chapter: Chapter }) {
+  const openWork = useUi((s) => s.openWork)
+  if (!chapter.category) return null
+  return (
+    <ul className="grid gap-4 sm:grid-cols-2">
+      {sortedWorks(chapter.category).map((w) => (
+        <li key={w.id}>
+          <button
+            type="button"
+            onClick={() => openWork(w.id)}
+            className="group block w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] text-left transition hover:border-sun/50"
+          >
+            <img src={w.thumbnail} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
+            <span className="block p-4">
+              <span className="flex items-baseline justify-between gap-3">
+                <span className="font-display text-xl leading-tight">{w.title}</span>
+                <span className="text-xs text-white/40">{w.year}</span>
+              </span>
+              <span className="mt-1.5 block text-sm text-white/60">{w.summary}</span>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
   )
 }
 
