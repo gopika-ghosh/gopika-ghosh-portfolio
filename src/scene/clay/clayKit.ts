@@ -119,7 +119,7 @@ export function clayGrain() {
 
 /** Toy palette. */
 export const clay = {
-  sky: { top: '#140f33', mid: '#2a1d55', horizon: '#4f2a63' },
+  sky: { top: '#07051a', mid: '#130d2e', horizon: '#26173d' },
   sun: '#ffc34d',
   sunCore: '#fff0b8',
 }

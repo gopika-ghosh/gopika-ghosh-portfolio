@@ -7,6 +7,8 @@ import { bodyPosition } from '../orbits'
 import { useTexture } from '@react-three/drei'
 import { cachedClayBall, clayGrain, clayMapUrl, prepClayMap } from './clayKit'
 import { painters, ringStripes } from './painters'
+import { ClayClouds } from './ClayClouds'
+import { cueBoop } from '../../audio/ambient'
 
 interface Props {
   def: BodyDef
@@ -63,7 +65,10 @@ export function ClayPlanet({ def, children, equatorial }: Props) {
   })
 
   const poke = () => {
-    if (Math.abs(squish.current.v) < 0.5) squish.current.v -= 2.2
+    if (Math.abs(squish.current.v) >= 0.5) return
+    squish.current.v -= 2.2
+    // Each planet boops at its own pitch: big ones low, small ones high.
+    cueBoop(MathUtils.clamp(1.6 / Math.sqrt(def.radius), 0.6, 2))
   }
 
   return (
@@ -90,6 +95,7 @@ export function ClayPlanet({ def, children, equatorial }: Props) {
             ))}
           </group>
         )}
+        {def.id === 'earth' && <ClayClouds radius={def.radius} />}
         {equatorial}
       </group>
       {children}

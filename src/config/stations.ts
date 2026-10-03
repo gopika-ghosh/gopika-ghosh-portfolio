@@ -58,7 +58,7 @@ const top = { x: 0, y: 0.38 }
 export const stations: Record<StationId, Station> = {
   system: {
     kind: 'system', anchor: 'earth', angleOffset: -0.9, radius: 95, height: 175, fov: 42,
-    screen: { x: 0, y: -0.22 }, portraitScreen: { x: 0, y: -0.15 },
+    screen: { x: 0, y: -0.36 }, portraitScreen: { x: 0, y: -0.28 },
   },
   sun: {
     kind: 'body', body: 'sun', frameFrom: 'mercury', distance: 2.9, azimuth: 160, elevation: 8, fov: 45,

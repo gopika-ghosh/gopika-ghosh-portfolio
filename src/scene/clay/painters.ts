@@ -40,8 +40,8 @@ export const painters: Partial<Record<BodyId, Painter>> = {
     const n = fbm(_p.copy(d).multiplyScalar(1.8).addScalar(3.3), 4)
     const land = n > 0.04
     if (Math.abs(d.y) > 0.84) {
-      out.copy(C('#f4f1ec')) // ice caps
-      return 0.012
+      out.copy(C('#f4f1ec')) // ice caps (flat: raised caps pinch at the sphere's poles)
+      return 0
     }
     if (land) {
       out.copy(n > 0.2 ? C('#4fa463') : C('#6cc27a'))

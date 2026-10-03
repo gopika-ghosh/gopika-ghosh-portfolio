@@ -143,20 +143,32 @@ function Panel({ chapter, index, wide, children }: { chapter: Chapter; index: nu
 function Intro() {
   return (
     <div className="pointer-events-auto">
+      <div className="intro-scrim relative">
       {/* Letters rise in one by one; screen readers get the plain name. */}
-      <h1 id="home-heading" aria-label={site.name} className="font-display text-7xl leading-none md:text-[9rem]">
+      <h1 id="home-heading" aria-label={site.name} className="font-display text-7xl leading-none font-semibold md:text-[9rem]">
         {[...site.name].map((ch, i) => (
           <span key={i} aria-hidden="true" className="reveal-letter" style={{ '--i': i } as CSSProperties}>
             {ch}
           </span>
         ))}
       </h1>
-      <p {...r(4)} className="mt-4 text-sm tracking-[0.25em] text-white/70 uppercase md:text-base">
-        {site.title}
+      <p
+        {...r(4)}
+        className="mt-5 flex flex-wrap items-center justify-center gap-y-1 text-[13px] font-semibold tracking-[0.18em] text-white/95 uppercase md:text-base"
+      >
+        {/* Roles separated by sun-coloured dots, so they read as three distinct things. */}
+        {site.title.split('·').map((role, i) => (
+          // Never break inside a role; lines wrap between roles.
+          <span key={i} className="whitespace-nowrap">
+            {i > 0 && <span className="mx-2 text-sun md:mx-3" aria-hidden="true">•</span>}
+            {role.trim()}
+          </span>
+        ))}
       </p>
-      <p {...r(6)} className="mx-auto mt-6 hidden max-w-md text-white/55 md:block">
+      <p {...r(6)} className="mx-auto mt-5 hidden max-w-md text-white/80 md:block">
         {site.tagline}
       </p>
+      </div>
       <div {...r(9)} className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-3">
         <span className="text-xs tracking-[0.3em] text-white/45 uppercase">Scroll to explore</span>
         <span className="scroll-cue" aria-hidden="true" />

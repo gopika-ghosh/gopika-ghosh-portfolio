@@ -79,6 +79,46 @@ export function cueHover() {
   chime(1318.5, 0.035, 0.9) // E6
 }
 
+/** A soft toy "boop" — a quick pitch drop. `pitch` 1 = default; planets use their own. */
+export function cueBoop(pitch = 1) {
+  if (!ctx || !enabled) return
+  const t = ctx.currentTime
+  const osc = ctx.createOscillator()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(520 * pitch, t)
+  osc.frequency.exponentialRampToValueAtTime(260 * pitch, t + 0.18)
+  const g = ctx.createGain()
+  g.gain.setValueAtTime(0, t)
+  g.gain.linearRampToValueAtTime(0.07, t + 0.01)
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35)
+  osc.connect(g)
+  g.connect(master!)
+  osc.start(t)
+  osc.stop(t + 0.4)
+}
+
+/** A rising whoosh, for the rocket taking off. */
+export function cueWhoosh() {
+  if (!ctx || !enabled) return
+  const t = ctx.currentTime
+  const src = ctx.createBufferSource()
+  src.buffer = noiseBuffer(ctx, 1.2)
+  const band = ctx.createBiquadFilter()
+  band.type = 'bandpass'
+  band.Q.value = 1.4
+  band.frequency.setValueAtTime(300, t)
+  band.frequency.exponentialRampToValueAtTime(2400, t + 0.9)
+  const g = ctx.createGain()
+  g.gain.setValueAtTime(0, t)
+  g.gain.linearRampToValueAtTime(0.05, t + 0.15)
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1)
+  src.connect(band).connect(g)
+  g.connect(master!)
+  g.connect(reverbSend!)
+  src.start(t)
+  src.stop(t + 1.2)
+}
+
 /** A gentle two-note swell, for opening a project. */
 export function cueOpen() {
   if (!ctx || !enabled) return

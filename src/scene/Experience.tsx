@@ -27,6 +27,8 @@ import { theme } from '../lib/env'
 import { ClayPlanet } from './clay/ClayPlanet'
 import { ClaySky } from './clay/ClaySky'
 import { ClaySun } from './clay/ClaySun'
+import { Rocket } from './clay/Rocket'
+import { ShootingStars } from './clay/ShootingStars'
 import { clay, clayMapUrl } from './clay/clayKit'
 
 const MAX_DPR = Math.min(quality.maxDpr, window.devicePixelRatio || 1)
@@ -86,6 +88,8 @@ export function Experience({ timeline, onContextLost }: { timeline: Timeline; on
             <>
               <ClaySky />
               <ClaySun />
+              <ShootingStars />
+              <Rocket timeline={timeline} />
               {/* Soft twilight fill so clay never goes pitch black on its night side. */}
               <hemisphereLight args={['#b9a4ff', '#5a2f55', 0.55]} />
             </>
