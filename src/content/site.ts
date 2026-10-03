@@ -20,12 +20,12 @@ export const site = {
   title: 'UI/UX Designer · Graphic Designer · Video Editor',
   /** TODO: placeholder — replace with a line in Gopika's own words. */
   tagline: 'Everything I make orbits one idea: design is for people.',
-  /** Paths are relative to /public. TODO: placeholder portrait — add her photo as public/images/gopika.webp. */
+  /** Paths are relative to /public. Cropped from assets-src/profile.jpg. */
   photo: '/images/gopika.webp',
   /** Describes the photo for screen readers. */
-  photoAlt: 'Portrait of Gopika Ghosh',
+  photoAlt: 'Gopika Ghosh smiling on a beach, in black and white',
   bio: "I'm a UI/UX and graphic designer with 2+ years of experience designing web, mobile and admin interfaces. I focus on usability, accessibility and scalable design systems that connect the user experience with business goals — and I bring the same care to brand identities, marketing creatives and presentations.",
-  /** TODO: placeholder — replace with Gopika's own design philosophy. */
+  /** Her design philosophy, shown under the bio. */
   philosophy: 'Start with the person, not the pixel. Remove until it breaks, then add one thing back.',
   /** Shown at Mercury: one line per discipline. */
   disciplines: [

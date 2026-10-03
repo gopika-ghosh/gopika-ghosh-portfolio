@@ -99,7 +99,7 @@ Featured projects always get their own moon, and the order in `works.ts` decides
 
 Replace the file with one of the same name, or point the entry at a new path. Keep images reasonably small: WebP at quality 80–85 and 1600 px wide is plenty.
 
-Your photo is `site.photo` (currently `public/images/gopika.webp`). Portrait orientation works best, at roughly 900×1100. Update `site.photoAlt` to describe it for screen readers.
+Your photo is `site.photo` (`public/images/gopika.webp`, a head-and-shoulders crop of `assets-src/profile.jpg`). Portrait orientation works best, at roughly 720×880 (9:11). Update `site.photoAlt` to describe it for screen readers.
 
 ## Reorder or change the journey
 

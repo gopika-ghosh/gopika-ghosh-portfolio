@@ -191,11 +191,14 @@ function Intro() {
 
 function About() {
   return (
-    <div className="flex gap-5">
+    <div className="flex flex-col gap-5 sm:flex-row">
       <img
         src={site.photo}
         alt={site.photoAlt}
-        className="hidden h-36 w-28 shrink-0 rounded-2xl object-cover ring-1 ring-white/10 sm:block"
+        width={720}
+        height={880}
+        loading="lazy"
+        className="h-32 w-[6.5rem] shrink-0 rounded-2xl object-cover ring-1 ring-white/10 sm:h-36 sm:w-28"
       />
       <div>
         <p className="text-[15px] leading-relaxed text-white/75">{site.bio}</p>
