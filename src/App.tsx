@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { useAudioCues } from './audio/useAudioCues'
 import { journeyChapters as chapters } from './content'
 import { webglAvailable } from './lib/env'
@@ -35,12 +35,27 @@ export default function App() {
 }
 
 function Journey({ onFail }: { onFail: (e: unknown) => void }) {
-  const timeline = useMemo(() => buildTimeline(chapters), [])
+  // Extra parked scroll for chapters whose text is taller than the screen (measured by Chapters).
+  const [extra, setExtra] = useState<number[]>([])
+  const onOverflow = useCallback(
+    (index: number, units: number) =>
+      setExtra((prev) => {
+        if (Math.abs((prev[index] ?? 0) - units) < 0.05) return prev
+        const next = [...prev]
+        next[index] = units
+        return next
+      }),
+    [],
+  )
+  const timeline = useMemo(() => buildTimeline(chapters, extra), [extra])
   useSmoothScroll(timeline)
   useAudioCues(timeline)
 
   // Debug handle for scripts/inspect.mjs.
-  if (debug) Object.assign(window, { __journey: { stops: timeline.stops, unit: () => scrollStore.unit, ui: useUi, scroll: scrollStore } })
+  if (debug)
+    Object.assign(window, {
+      __journey: { stops: timeline.stops, unit: () => scrollStore.unit, ui: useUi, scroll: scrollStore },
+    })
 
   return (
     <>
@@ -49,7 +64,7 @@ function Journey({ onFail }: { onFail: (e: unknown) => void }) {
           <Experience timeline={timeline} onContextLost={onFail} />
         </Suspense>
       </ErrorBoundary>
-      <Chapters timeline={timeline} />
+      <Chapters timeline={timeline} onOverflow={onOverflow} />
       <Nav timeline={timeline} />
       <ProjectPanel />
       <ViewAllGrid />

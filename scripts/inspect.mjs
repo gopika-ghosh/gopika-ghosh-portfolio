@@ -2,7 +2,7 @@
  * Dev visual check: opens the site in your installed Chrome, waits for the loader,
  * then screenshots each journey stop. Prints console errors and load timing.
  *
- *   node scripts/inspect.mjs [--url http://localhost:5173] [--stops 0,1,3] [--at 3.4,9.5] [--out dir] [--size 1568x710]
+ *   node scripts/inspect.mjs [--url http://localhost:5173] [--stops 0,1,3] [--at 3.4,9.5] [--out dir] [--size 1568x710] [--end]
  *
  * --at shoots arbitrary scroll positions (in units) instead of stops, e.g. mid-flight.
  */
@@ -78,5 +78,13 @@ for (const i of stops) {
   const file = path.join(out, `stop-${String(i).padStart(2, '0')}-${name}.png`)
   await page.screenshot({ path: file })
   console.log(`  shot ${file}`)
+  // --end: also the last parked moment, where tall (phone) content has scrolled fully into view.
+  if (process.argv.includes('--end')) {
+    await page.evaluate((i) => window.scrollTo(0, window.__journey.stops[i].leave * window.__journey.unit()), i)
+    await page.waitForTimeout(1500)
+    const end = path.join(out, `stop-${String(i).padStart(2, '0')}-${name}-end.png`)
+    await page.screenshot({ path: end })
+    console.log(`  shot ${end}`)
+  }
 }
 await browser.close()

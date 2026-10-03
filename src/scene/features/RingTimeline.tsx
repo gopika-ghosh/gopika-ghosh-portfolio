@@ -66,9 +66,13 @@ export function RingTimeline({ roles, radius, chapterIndex }: Props) {
         <group key={`${r.company}-${r.start}`} ref={(el) => void (markers.current[i] = el)}>
           {active && (
             <Html center zIndexRange={[25, 0]} style={{ pointerEvents: 'none' }}>
-              <div ref={(el) => void (labels.current[i] = el)} style={{ opacity: 0 }} className="flex flex-col items-center">
+              <div
+                ref={(el) => void (labels.current[i] = el)}
+                style={{ opacity: 0 }}
+                className="flex flex-col items-center"
+              >
                 <span className="size-2.5 rounded-full bg-sun shadow-[0_0_14px_3px_rgb(255_179_92/0.75)]" />
-                <span className="mt-2 rounded-full border border-white/12 bg-black/50 px-3 py-1 text-center text-[11px] leading-tight whitespace-nowrap backdrop-blur-sm">
+                <span className="mt-2 rounded-full border border-white/12 bg-black/50 px-3 py-1 text-center text-[11px] leading-tight whitespace-nowrap backdrop-blur-sm max-md:hidden">
                   <span className="text-sun/90 tabular-nums">{r.start}</span>
                   <span className="text-white/85"> · {r.short ?? r.company}</span>
                 </span>

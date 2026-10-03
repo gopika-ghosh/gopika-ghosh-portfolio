@@ -127,7 +127,7 @@ export function SkillRocks({ chapterIndex }: { chapterIndex: number }) {
               <div
                 ref={(el) => void (labels.current[i] = el)}
                 style={{ opacity: 0, pointerEvents: 'none' }}
-                className="relative flex flex-col items-center gap-1.5"
+                className="relative flex flex-col items-center gap-1.5 max-md:hidden"
                 onPointerEnter={() => hoverTool(r.name)}
                 onPointerLeave={() => leaveTool(r.name)}
               >
@@ -147,7 +147,9 @@ export function SkillRocks({ chapterIndex }: { chapterIndex: number }) {
                     <span className="text-[10px] text-white/85">{r.name}</span>
                   )}
                 </button>
-                <span className="text-[10px] tracking-[0.12em] whitespace-nowrap text-white/60 uppercase">{r.name}</span>
+                <span className="text-[10px] tracking-[0.12em] whitespace-nowrap text-white/60 uppercase">
+                  {r.name}
+                </span>
                 {shownTool === r.name && r.projects.length > 0 && (
                   <ul className="absolute top-full z-10 mt-2 flex flex-col items-center gap-1">
                     {r.projects.map((w) => (

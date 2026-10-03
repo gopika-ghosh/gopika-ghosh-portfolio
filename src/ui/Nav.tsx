@@ -47,12 +47,18 @@ export function Nav({ timeline }: { timeline: Timeline }) {
 
   return (
     <>
+      {/* Phones: a fade behind the top bar, so content scrolling under it doesn't clash. */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none fixed inset-x-0 top-0 z-20 h-24 bg-gradient-to-b from-[#07051a] via-[#07051a]/80 to-transparent md:hidden ${fade}`}
+      />
+
       {/* Home mark */}
       <button
         type="button"
         onClick={() => go(0)}
         style={{ marginTop: 'env(safe-area-inset-top)' }}
-        className={`fixed top-5 left-6 z-30 font-display text-xl tracking-wide text-white/85 transition-colors hover:text-white md:top-7 md:left-10 ${fade}`}
+        className={`fixed top-6 left-5 z-30 font-display text-lg tracking-wide md:text-xl text-white/85 transition-colors hover:text-white md:top-7 md:left-10 ${fade}`}
         aria-label={`${site.name} — back to the start`}
       >
         {site.name}
@@ -62,18 +68,30 @@ export function Nav({ timeline }: { timeline: Timeline }) {
       {/* Top-right controls: sound everywhere, chapter menu on phones */}
       <div
         style={{ marginTop: 'env(safe-area-inset-top)' }}
-        className={`fixed top-4 right-4 z-30 flex items-center gap-2 md:top-6 md:right-8 ${fade}`}
+        className={`fixed top-4 right-4 z-30 flex items-center gap-1.5 md:top-6 md:right-8 md:gap-2 ${fade}`}
       >
         <SoundToggle />
         <button
           type="button"
           onClick={() => setMenu(true)}
-          className="flex h-10 items-center gap-2 rounded-full border border-white/15 bg-black/30 px-4 text-xs tracking-[0.2em] text-white/80 uppercase backdrop-blur-md md:hidden"
+          className="flex h-10 items-center gap-2 rounded-full border border-white/15 bg-black/30 px-3.5 text-[11px] tracking-[0.14em] text-white/80 uppercase backdrop-blur-md md:hidden"
           aria-haspopup="dialog"
           aria-expanded={menu}
+          aria-label={`Chapters (now: ${timeline.stops[active]?.chapter.navLabel})`}
         >
           <span className="tabular-nums text-sun/80">{String(active).padStart(2, '0')}</span>
-          {timeline.stops[active]?.chapter.navLabel}
+          {/* The chapter name only where it fits beside her name; a menu icon on narrow phones. */}
+          <span className="max-[410px]:hidden">{timeline.stops[active]?.chapter.navLabel}</span>
+          <svg
+            viewBox="0 0 24 24"
+            className="size-4 min-[411px]:hidden"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            aria-hidden="true"
+          >
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
         </button>
       </div>
 
@@ -160,7 +178,14 @@ function MobileMenu({
           className="grid size-10 place-items-center rounded-full border border-white/15 text-white/80"
           aria-label="Close menu"
         >
-          <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            className="size-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            aria-hidden="true"
+          >
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>

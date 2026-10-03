@@ -15,6 +15,10 @@ const SNAP_RANGE = 0.35
 const SNAP_DELAY = 140
 
 let lenis: Lenis | null = null
+/** First run only: start at the top and honour a #chapter link. (The timeline can be
+ *  rebuilt later, e.g. when phone content is measured, and that mustn't move the reader.) */
+let started = false
+let jumped = false
 
 const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
@@ -69,8 +73,12 @@ export function useSmoothScroll(timeline: Timeline) {
     window.addEventListener('resize', onResize)
 
     // Start at the beginning (or at a #chapter deep link), and hold scrolling until the scene is ready.
-    history.scrollRestoration = 'manual'
-    window.scrollTo(0, 0)
+    const first = !started
+    started = true
+    if (first) {
+      history.scrollRestoration = 'manual'
+      window.scrollTo(0, 0)
+    }
     const linked = timeline.stops.find((s) => `#${s.chapter.id}` === window.location.hash && s.index > 0)
     // Reduced motion: native wheel scrolling, no inertia.
     lenis = new Lenis({ autoRaf: false, lerp: 0.085, wheelMultiplier: 0.9, smoothWheel: !reducedMotion })
@@ -81,7 +89,6 @@ export function useSmoothScroll(timeline: Timeline) {
       else lenis?.stop()
     }
     syncLock()
-    let jumped = false
     const unsubLock = useUi.subscribe((s) => {
       syncLock()
       // Deep link: once the scene is ready, appear at the linked stop without a long flight.
@@ -150,9 +157,7 @@ export function useSmoothScroll(timeline: Timeline) {
       const EPS = 0.02
       const u = scrollStore.u
       const { stops } = timeline
-      const target = forward
-        ? stops.find((s) => s.arrive > u + EPS)
-        : stops.findLast((s) => s.arrive < u - EPS)
+      const target = forward ? stops.find((s) => s.arrive > u + EPS) : stops.findLast((s) => s.arrive < u - EPS)
       if (target) glideTo(target.arrive)
     }
     window.addEventListener('keydown', onKey)

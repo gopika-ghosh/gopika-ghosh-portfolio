@@ -19,14 +19,17 @@ import { clayGrain, starGeometry } from './clayKit'
 const DEPTH = 2.4
 /** Where she floats on screen (fractions of half-width/height), clear of the text. */
 const SPOT = new Vector2(0.8, -0.7)
-const SPOT_PORTRAIT = new Vector2(-0.74, 0.5)
-/** Phones, opening shot: the title fills the top, so she waits lower down. */
-const SPOT_PORTRAIT_INTRO = new Vector2(0.62, -0.42)
+/** Phones: tucked into the bottom-right corner, out of the text. */
+const SPOT_PHONE = new Vector2(0.8, -0.88)
+/** Phones, opening shot: a little higher, so her greeting clears "Scroll to explore". */
+const SPOT_PHONE_INTRO = new Vector2(0.8, -0.42)
 /** While a project panel covers the right half, she hops to the left to comment on it. */
 const SPOT_PANEL = new Vector2(-0.7, -0.55)
 const SIZE = 0.085
 /** Phones (narrower than 640px) get a much smaller star. */
 const SIZE_PHONE = 0.05
+/** Phone layout below this width (matches the md breakpoint). */
+const PHONE_MAX = 768
 /** How long a reaction stays up before she returns to the stop's line (ms). */
 const REMARK_MS = 4800
 /** How long a stop's line stays up before the bubble tucks away (ms, plus reading time). */
@@ -51,8 +54,8 @@ export function StarGuide({ timeline }: { timeline: Timeline }) {
   const body = useRef<Group>(null)
   const eyes = useRef<Group>(null)
   const anim = useRef({
-    x: SPOT.x,
-    y: SPOT.y,
+    x: window.innerWidth < PHONE_MAX ? SPOT_PHONE.x : SPOT.x,
+    y: window.innerWidth < PHONE_MAX ? SPOT_PHONE.y : SPOT.y,
     show: 0,
     squish: 0,
     squishV: 0,
@@ -105,14 +108,23 @@ export function StarGuide({ timeline }: { timeline: Timeline }) {
 
   // A little hop whenever she starts a new line; the bubble tucks away after a while so it
   // never sits on top of the work. Tapping her brings it back.
+  // On phones she only speaks unprompted on the opening shot; after that, tap her to hear more.
   const [open, setOpen] = useState(true)
   const [wake, setWake] = useState(0)
+  const tapped = useRef(false)
+  const introStop = stop?.chapter.kind === 'intro'
   useEffect(() => {
+    const quiet = window.innerWidth < PHONE_MAX && !introStop && !tapped.current
+    tapped.current = false
+    if (quiet) {
+      setOpen(false)
+      return
+    }
     anim.current.talk = 1
     setOpen(true)
     const t = window.setTimeout(() => setOpen(false), BUBBLE_MS + line.length * 25)
     return () => window.clearTimeout(t)
-  }, [lineKey, line, wake])
+  }, [lineKey, line, wake, introStop])
 
   const geometry = useMemo(() => starGeometry(), [])
   const grain = clayGrain()
@@ -134,12 +146,14 @@ export function StarGuide({ timeline }: { timeline: Timeline }) {
     // Placement in screen space.
     const aspect = size.width / size.height
     const modal = isModalOpen(ui)
+    const phone = size.width < PHONE_MAX
     const intro = timeline.stops[ui.active]?.chapter.kind === 'intro'
-    const home = modal ? SPOT_PANEL : aspect < 0.9 ? (intro ? SPOT_PORTRAIT_INTRO : SPOT_PORTRAIT) : SPOT
+    const home = phone ? (intro ? SPOT_PHONE_INTRO : SPOT_PHONE) : modal ? SPOT_PANEL : SPOT
     const near = !reducedMotion && !modal && Math.hypot(pointer.x - home.x, (pointer.y - home.y) * 0.6) < 0.4 ? 1 : 0
     easing.damp(a, 'x', home.x + MathUtils.clamp((pointer.x - home.x) * 0.25, -0.06, 0.06) * near, 0.45, dt)
     easing.damp(a, 'y', home.y + MathUtils.clamp((pointer.y - home.y) * 0.25, -0.06, 0.06) * near, 0.45, dt)
-    easing.damp(a, 'show', ui.ready ? 1 : 0, 0.3, dt)
+    // On phones a project panel covers the whole screen, so she steps out while it's open.
+    easing.damp(a, 'show', ui.ready && !(phone && modal) ? 1 : 0, 0.3, dt)
     easing.damp(a, 'tilt', reducedMotion ? 0 : MathUtils.clamp(-(pointer.x - a.x) * 0.5, -0.35, 0.35), 0.4, dt)
     easing.damp(a, 'lean', atStop || reducedMotion ? 0 : 0.35, 0.3, dt)
 
@@ -168,7 +182,7 @@ export function StarGuide({ timeline }: { timeline: Timeline }) {
     const bob = reducedMotion ? 0 : Math.sin(t * 1.8) * 0.012
     b.position.set(0, bob, 0)
     b.rotation.set(a.lean * 0.4, 0, a.tilt + (reducedMotion ? 0 : Math.sin(t * 0.9) * 0.06))
-    const s = (size.width < 640 ? SIZE_PHONE : SIZE) * a.show
+    const s = (phone ? SIZE_PHONE : SIZE) * a.show
     b.scale.set(s * (1 - a.squish * 0.25), s * (1 + a.squish * 0.3), s)
 
     a.nextBlink -= dt
@@ -183,6 +197,7 @@ export function StarGuide({ timeline }: { timeline: Timeline }) {
   const tap = () => {
     if (!useUi.getState().ready) return
     anim.current.talk = 1.4
+    tapped.current = true
     cueBoop(1.6)
     // First tap after the bubble tucked away: say the stop's line again.
     if (!open) {
@@ -204,14 +219,13 @@ export function StarGuide({ timeline }: { timeline: Timeline }) {
   const showBubble = ready && !!line && open && (parked || !!remark)
   // The bubble opens toward the middle of the screen.
   const modal = useUi(isModalOpen)
-  const [portrait, setPortrait] = useState(() => window.innerWidth / window.innerHeight < 0.9)
+  const [phone, setPhone] = useState(() => window.innerWidth < PHONE_MAX)
   useEffect(() => {
-    const on = () => setPortrait(window.innerWidth / window.innerHeight < 0.9)
+    const on = () => setPhone(window.innerWidth < PHONE_MAX)
     window.addEventListener('resize', on)
     return () => window.removeEventListener('resize', on)
   }, [])
-  const introStop = stop?.chapter.kind === 'intro'
-  const side: 'left' | 'right' = modal || (portrait && !introStop) ? 'right' : 'left'
+  const side: 'left' | 'right' = modal && !phone ? 'right' : 'left'
 
   return (
     <group ref={root}>

@@ -1,4 +1,5 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from 'react'
+import { scrollStore } from '../journey/scrollStore'
 import type { Stop, Timeline } from '../journey/timeline'
 import type { Chapter } from '../content/types'
 import { site } from '../content/site'
@@ -16,7 +17,14 @@ import { Testimonials } from './Testimonials'
  * its slice of the camera timeline, so scroll length, camera stops and content
  * always line up. This is also what screen readers and search engines read.
  */
-export function Chapters({ timeline }: { timeline: Timeline }) {
+export function Chapters({
+  timeline,
+  onOverflow,
+}: {
+  timeline: Timeline
+  /** Reports how many units taller than the screen a chapter's content is (0 if it fits). */
+  onOverflow?: (index: number, units: number) => void
+}) {
   // While a project panel or grid is open, the page behind it is inert (no focus, hidden from screen readers).
   const modal = useUi(isModalOpen)
   return (
@@ -25,7 +33,7 @@ export function Chapters({ timeline }: { timeline: Timeline }) {
       inert={modal}
     >
       {timeline.stops.map((stop) => (
-        <ChapterSection key={stop.chapter.id} stop={stop} />
+        <ChapterSection key={stop.chapter.id} stop={stop} onOverflow={onOverflow} />
       ))}
     </main>
   )
@@ -37,7 +45,7 @@ const units = (n: number): CSSProperties => ({ height: `calc(${n} * var(--unit, 
 /** Stagger index for a revealed element (see [data-reveal] in index.css). */
 const r = (i: number) => ({ 'data-reveal': '', style: { '--i': i } as CSSProperties })
 
-function ChapterSection({ stop }: { stop: Stop }) {
+function ChapterSection({ stop, onOverflow }: { stop: Stop; onOverflow?: (index: number, units: number) => void }) {
   const { chapter, travel, dwell } = stop
   // Wide system shots put the system below the intro text and above the contact text.
   const layout =
@@ -45,10 +53,36 @@ function ChapterSection({ stop }: { stop: Stop }) {
       ? 'items-start justify-center pt-[14vh] text-center'
       : chapter.kind === 'contact'
         ? 'items-end justify-center pb-[10vh] text-center md:pb-[10vh]'
-        : 'items-end pb-10 md:items-center md:pb-0'
+        : // Phones: the planet keeps the top of the screen; the text sits below it.
+          'items-end pt-[42svh] pb-10 md:items-center md:pt-0 md:pb-0'
 
   // Content reveals (staggered) when this becomes the active stop, and fades as the camera leaves.
   const shown = useUi((s) => s.ready && s.active === stop.index)
+
+  // The content pins while the camera is parked. When it is taller than the screen (small
+  // phones, long chapters) it scrolls up into view first, then pins by its bottom edge; the
+  // timeline gives this stop that much extra parked scroll.
+  const box = useRef<HTMLDivElement>(null)
+  const report = useRef(onOverflow)
+  report.current = onOverflow
+  useLayoutEffect(() => {
+    const el = box.current
+    if (!el) return
+    const fit = () => {
+      const unit = scrollStore.unit || window.innerHeight
+      const over = Math.max(0, el.offsetHeight - unit)
+      el.style.top = `${-over}px`
+      report.current?.(stop.index, Math.ceil((over / unit) * 20) / 20)
+    }
+    const ro = new ResizeObserver(fit)
+    ro.observe(el)
+    window.addEventListener('resize', fit)
+    fit()
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', fit)
+    }
+  }, [stop.index])
 
   return (
     <section
@@ -61,7 +95,7 @@ function ChapterSection({ stop }: { stop: Stop }) {
       {/* Scroll spent parked here: the content pins for (dwell − 1) units. The #anchor lives
           here (not on the section) so native #links land exactly where the camera arrives. */}
       <div id={chapter.id} style={units(dwell)}>
-        <div className={`sticky top-0 flex px-6 md:px-16 ${layout}`} style={units(1)}>
+        <div ref={box} className={`sticky top-0 flex px-6 md:px-16 ${layout}`} style={{ minHeight: units(1).height }}>
           <Content chapter={chapter} index={stop.index} />
         </div>
       </div>
@@ -119,9 +153,24 @@ export function Content({ chapter, index, page }: { chapter: Chapter; index: num
 }
 
 /** Eyebrow, heading and intro shared by every chapter; children add the specifics. */
-function Panel({ chapter, index, wide, children }: { chapter: Chapter; index: number; wide?: boolean; children?: ReactNode }) {
+function Panel({
+  chapter,
+  index,
+  wide,
+  children,
+}: {
+  chapter: Chapter
+  index: number
+  wide?: boolean
+  children?: ReactNode
+}) {
   return (
-    <div className={`pointer-events-auto w-full ${wide ? 'max-w-xl' : 'max-w-md'}`}>
+    <div className={`pointer-events-auto relative isolate w-full ${wide ? 'max-w-xl' : 'max-w-md'}`}>
+      {/* Phones: the text runs over the planets, so it gets a soft dark backdrop to stay readable. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -inset-x-6 -top-12 -bottom-10 -z-10 bg-gradient-to-b from-transparent via-[#07051a]/80 via-[3rem] to-[#07051a]/85 md:hidden"
+      />
       <p {...r(0)} className="mb-3 text-xs tracking-[0.3em] text-sun/80 uppercase">
         <span className="reveal-rule" aria-hidden="true" />
         {String(index).padStart(2, '0')} · {chapter.navLabel}
@@ -147,39 +196,47 @@ function Intro() {
   return (
     <div className="pointer-events-auto">
       <div className="intro-scrim relative">
-      {/* Letters rise in one by one; screen readers get the plain name. */}
-      <h1 id="home-heading" aria-label={site.name} className="font-display text-6xl leading-[0.95] font-semibold md:text-[8rem]">
-        {/* Letters of each word stay together, so a long name wraps between words, never inside one. */}
-        {site.name.split(' ').map((word, w, words) => {
-          const offset = words.slice(0, w).join('').length
-          return (
-            <span key={w} className="inline-block whitespace-nowrap" aria-hidden="true">
-              {[...word].map((ch, i) => (
-                <span key={i} className="reveal-letter" style={{ '--i': offset + i } as CSSProperties}>
-                  {ch}
+        {/* Letters rise in one by one; screen readers get the plain name. */}
+        <h1
+          id="home-heading"
+          aria-label={site.name}
+          className="font-display text-6xl leading-[0.95] font-semibold md:text-[8rem]"
+        >
+          {/* Letters of each word stay together, so a long name wraps between words, never inside one. */}
+          {site.name.split(' ').map((word, w, words) => {
+            const offset = words.slice(0, w).join('').length
+            return (
+              <span key={w} className="inline-block whitespace-nowrap" aria-hidden="true">
+                {[...word].map((ch, i) => (
+                  <span key={i} className="reveal-letter" style={{ '--i': offset + i } as CSSProperties}>
+                    {ch}
+                  </span>
+                ))}
+                {w < words.length - 1 && <span className="inline-block w-[0.28em]" />}
+              </span>
+            )
+          })}
+        </h1>
+        <p
+          {...r(4)}
+          className="mt-5 flex flex-wrap items-center justify-center gap-y-1 text-[13px] font-semibold tracking-[0.18em] text-white/95 uppercase md:text-base"
+        >
+          {/* Roles separated by sun-coloured dots, so they read as three distinct things. */}
+          {site.title.split('·').map((role, i) => (
+            // Never break inside a role; lines wrap between roles.
+            <span key={i} className="whitespace-nowrap">
+              {i > 0 && (
+                <span className="mx-2 text-sun md:mx-3" aria-hidden="true">
+                  •
                 </span>
-              ))}
-              {w < words.length - 1 && <span className="inline-block w-[0.28em]" />}
+              )}
+              {role.trim()}
             </span>
-          )
-        })}
-      </h1>
-      <p
-        {...r(4)}
-        className="mt-5 flex flex-wrap items-center justify-center gap-y-1 text-[13px] font-semibold tracking-[0.18em] text-white/95 uppercase md:text-base"
-      >
-        {/* Roles separated by sun-coloured dots, so they read as three distinct things. */}
-        {site.title.split('·').map((role, i) => (
-          // Never break inside a role; lines wrap between roles.
-          <span key={i} className="whitespace-nowrap">
-            {i > 0 && <span className="mx-2 text-sun md:mx-3" aria-hidden="true">•</span>}
-            {role.trim()}
-          </span>
-        ))}
-      </p>
-      <p {...r(6)} className="mx-auto mt-5 hidden max-w-md text-white/80 md:block">
-        {site.tagline}
-      </p>
+          ))}
+        </p>
+        <p {...r(6)} className="mx-auto mt-5 hidden max-w-md text-white/80 md:block">
+          {site.tagline}
+        </p>
       </div>
       <div {...r(9)} className="absolute inset-x-0 bottom-8 flex flex-col items-center gap-3">
         <span className="text-xs tracking-[0.3em] text-white/45 uppercase">Scroll to explore</span>
@@ -335,7 +392,10 @@ function Experience() {
     <ol className="relative space-y-5 border-l border-white/15 pl-5">
       {experience.map((r) => (
         <li key={`${r.company}-${r.start}`} className="relative">
-          <span className="absolute top-1.5 -left-[25px] size-2 rounded-full bg-sun shadow-[0_0_12px_rgb(255_179_92/0.8)]" aria-hidden="true" />
+          <span
+            className="absolute top-1.5 -left-[25px] size-2 rounded-full bg-sun shadow-[0_0_12px_rgb(255_179_92/0.8)]"
+            aria-hidden="true"
+          />
           <p className="text-xs text-white/45 tabular-nums">
             {r.start} – {r.end}
             {r.location && <span className="ml-2">· {r.location}</span>}
@@ -371,7 +431,13 @@ function Contact({ chapter, index }: { chapter: Chapter; index: number }) {
       </a>
       <div {...r(4)} className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm">
         {site.socials.map((s) => (
-          <a key={s.label} href={s.url} target="_blank" rel="noreferrer" className="text-white/65 transition hover:text-white">
+          <a
+            key={s.label}
+            href={s.url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-white/65 transition hover:text-white"
+          >
             {s.label}
           </a>
         ))}
@@ -397,11 +463,17 @@ function Credits() {
   return (
     <p {...r(5)} className="mt-10 text-[11px] leading-relaxed text-white/35">
       Planet textures by{' '}
-      <a className="underline decoration-white/20 hover:text-white/60" href="https://www.solarsystemscope.com/textures/">
+      <a
+        className="underline decoration-white/20 hover:text-white/60"
+        href="https://www.solarsystemscope.com/textures/"
+      >
         Solar System Scope
       </a>
       , licensed{' '}
-      <a className="underline decoration-white/20 hover:text-white/60" href="https://creativecommons.org/licenses/by/4.0/">
+      <a
+        className="underline decoration-white/20 hover:text-white/60"
+        href="https://creativecommons.org/licenses/by/4.0/"
+      >
         CC BY 4.0
       </a>
       , based on NASA imagery.

@@ -36,12 +36,16 @@ export interface Timeline {
   max: number
 }
 
-export function buildTimeline(chapters: Chapter[]): Timeline {
+/**
+ * `extra` adds parked scroll per stop (units), for content taller than the screen (small
+ * phones): its text scrolls up into view while the camera stays parked.
+ */
+export function buildTimeline(chapters: Chapter[], extra: readonly number[] = []): Timeline {
   let cursor = 0
   const stops = chapters.map((chapter, index) => {
     // The first stop is where we start, so there's nothing to travel from.
     const travel = index === 0 ? 0 : (chapter.travel ?? DEFAULT_TRAVEL)
-    const dwell = Math.max(1, chapter.dwell ?? DEFAULT_DWELL)
+    const dwell = Math.max(1, chapter.dwell ?? DEFAULT_DWELL) + (extra[index] ?? 0)
     const start = cursor
     const arrive = start + travel
     // The sticky content (one viewport tall) stays pinned for dwell − 1 units.
