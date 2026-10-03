@@ -25,6 +25,8 @@ const SPOT_PORTRAIT_INTRO = new Vector2(0.62, -0.42)
 /** While a project panel covers the right half, she hops to the left to comment on it. */
 const SPOT_PANEL = new Vector2(-0.7, -0.55)
 const SIZE = 0.085
+/** Phones (narrower than 640px) get a much smaller star. */
+const SIZE_PHONE = 0.05
 /** How long a reaction stays up before she returns to the stop's line (ms). */
 const REMARK_MS = 4800
 /** How long a stop's line stays up before the bubble tucks away (ms, plus reading time). */
@@ -166,7 +168,7 @@ export function StarGuide({ timeline }: { timeline: Timeline }) {
     const bob = reducedMotion ? 0 : Math.sin(t * 1.8) * 0.012
     b.position.set(0, bob, 0)
     b.rotation.set(a.lean * 0.4, 0, a.tilt + (reducedMotion ? 0 : Math.sin(t * 0.9) * 0.06))
-    const s = SIZE * a.show
+    const s = (size.width < 640 ? SIZE_PHONE : SIZE) * a.show
     b.scale.set(s * (1 - a.squish * 0.25), s * (1 + a.squish * 0.3), s)
 
     a.nextBlink -= dt
@@ -322,32 +324,32 @@ function SpeechBubble({
 
   return (
     <div
-      className={`absolute bottom-3 w-max max-w-[220px] text-[13px] transition-all duration-300 md:max-w-[320px] ${
-        side === 'left' ? 'right-7' : 'left-7'
+      className={`absolute bottom-2 w-max max-w-[170px] transition-all duration-300 sm:bottom-3 sm:max-w-[220px] md:max-w-[320px] ${
+        side === 'left' ? 'right-5 sm:right-7' : 'left-5 sm:left-7'
       } ${show ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`}
     >
-      <div className="relative rounded-2xl border border-white/15 bg-[#140d2e]/90 px-4 pt-3 pb-2.5 font-display text-[14px] leading-snug text-white shadow-[0_10px_30px_-8px_rgb(0_0_0/0.7)] backdrop-blur-md">
+      <div className="relative rounded-xl border border-white/15 bg-[#140d2e]/90 px-3 pt-2 pb-2 font-display text-[11.5px] leading-snug sm:rounded-2xl sm:px-4 sm:pt-3 sm:pb-2.5 sm:text-[14px] text-white shadow-[0_10px_30px_-8px_rgb(0_0_0/0.7)] backdrop-blur-md">
         {/* Full line for layout (invisible) + typed line on top, so the bubble doesn't resize while typing. */}
         <span className="invisible block" aria-hidden="true">
           {line}
         </span>
-        <span ref={text} className="absolute inset-x-4 top-3" />
+        <span ref={text} className="absolute inset-x-3 top-2 sm:inset-x-4 sm:top-3" />
         {onNext && (
           <button
             type="button"
             tabIndex={-1}
             onClick={onNext}
-            className="mt-2 inline-flex items-center gap-1 rounded-full bg-sun/90 px-3 py-0.5 text-[12px] font-semibold text-[#2a1405] transition hover:bg-sun"
+            className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-sun/90 px-2.5 py-0.5 text-[10.5px] font-semibold sm:mt-2 sm:px-3 sm:text-[12px] text-[#2a1405] transition hover:bg-sun"
           >
             {isLast ? guide.home : guide.next} <span aria-hidden="true">→</span>
           </button>
         )}
         {/* Tail pointing toward her. */}
         <span
-          className={`absolute bottom-3 size-3.5 rotate-45 bg-[#140d2e] ${
+          className={`absolute bottom-2 size-2.5 rotate-45 bg-[#140d2e] sm:bottom-3 sm:size-3.5 ${
             side === 'left'
-              ? '-right-[7px] border-t border-r border-white/15'
-              : '-left-[7px] border-b border-l border-white/15'
+              ? '-right-[5px] border-t border-r border-white/15 sm:-right-[7px]'
+              : '-left-[5px] border-b border-l border-white/15 sm:-left-[7px]'
           }`}
         />
       </div>
