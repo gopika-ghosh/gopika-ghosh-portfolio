@@ -1,4 +1,4 @@
-import { BufferAttribute, CanvasTexture, Color, RepeatWrapping, SphereGeometry, SRGBColorSpace, Vector3, type BufferGeometry, type Texture } from 'three'
+import { BufferAttribute, CanvasTexture, Color, ExtrudeGeometry, RepeatWrapping, Shape, SphereGeometry, SRGBColorSpace, Vector3, type BufferGeometry, type Texture } from 'three'
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 /**
@@ -122,4 +122,21 @@ export const clay = {
   sky: { top: '#07051a', mid: '#130d2e', horizon: '#26173d' },
   sun: '#ffc34d',
   sunCore: '#fff0b8',
+}
+
+/** A soft, bevelled five-point star: reads as a puffy clay cut-out. Shared instance. */
+let star: ExtrudeGeometry | null = null
+export function starGeometry() {
+  if (star) return star
+  const shape = new Shape()
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 + Math.PI / 2
+    const r = i % 2 === 0 ? 1 : 0.48
+    if (i === 0) shape.moveTo(Math.cos(a) * r, Math.sin(a) * r)
+    else shape.lineTo(Math.cos(a) * r, Math.sin(a) * r)
+  }
+  shape.closePath()
+  star = new ExtrudeGeometry(shape, { depth: 0.25, bevelEnabled: true, bevelSize: 0.22, bevelThickness: 0.22, bevelSegments: 4, curveSegments: 4 })
+  star.center()
+  return star
 }

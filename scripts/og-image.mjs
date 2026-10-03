@@ -22,7 +22,7 @@ await page.goto(url)
 await page.waitForFunction(() => !document.querySelector('[role=progressbar]'), null, { timeout: 90_000 })
 // Let the name reveal finish, then hide chrome that doesn't belong in a preview.
 await page.waitForTimeout(3500)
-await page.addStyleTag({ content: 'html { scrollbar-width: none } nav, button, .scroll-cue, [data-reveal]:last-child { visibility: hidden !important }' })
+await page.addStyleTag({ content: 'html { scrollbar-width: none } nav, button, [role=status], .scroll-cue, [data-reveal]:last-child { visibility: hidden !important }' })
 await page.waitForTimeout(300)
 const png = await page.screenshot()
 await sharp(png).resize(1200, 630).jpeg({ quality: 86, mozjpeg: true }).toFile('public/og-image.jpg')

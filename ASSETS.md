@@ -2,7 +2,7 @@
 
 Everything the site needs is already committed under `public/`. This file explains where it came from and how to rebuild it.
 
-## Planet textures
+## Planet textures (realistic theme)
 
 **Source:** [Solar System Scope](https://www.solarsystemscope.com/textures/), licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and based on NASA imagery. The attribution is shown in the Contact section (`Credits` in `src/ui/Chapters.tsx`). Keep it if you redesign that section.
 
@@ -34,16 +34,23 @@ The script (`scripts/build-textures.mjs`) resizes each map and encodes it to **K
 
 ### How they load
 
-- Every **2K** map loads up front, about 3 MB in total. The loading screen tracks them.
-- **4K** maps for Earth, Mars, Jupiter and Saturn stream in on desktop only, when the journey gets within one stop of that planet.
+- Every **2K** map loads and uploads behind the loading screen, about 3 MB in total. (4K versions are still built but not used: streaming them mid-journey caused GPU stalls, and 2K looked equivalent at these sizes.)
 - The KTX2 transcoder lives in `public/basis/`, copied from `three/examples/jsm/libs/basis/`. Re-copy it if you upgrade three.js.
+
+## Clay theme (default)
+
+Everything in the toy universe is generated in code: lumpy clay planets, the rocket, clouds, stars and asteroids. The planets' "paint jobs" (continents, bands, craters) are defined in `src/scene/clay/painters.ts` and pre-rendered to small WebP textures in `public/textures/clay/` (≈150 KB total) by `npm run clay-textures`. Re-run it after editing a painter.
 
 ## Fonts
 
 Self-hosted through npm, so there's no request to Google at runtime:
 
-- **Instrument Serif** (display): `@fontsource/instrument-serif`, SIL Open Font License
-- **Inter** (body): `@fontsource-variable/inter`, SIL Open Font License
+- **Fredoka** (display, rounded): `@fontsource-variable/fredoka`, SIL Open Font License
+- **Nunito** (body): `@fontsource-variable/nunito`, SIL Open Font License
+
+## Tool logos
+
+`public/images/tools/`: Figma, Photoshop, Illustrator and Canva from [Devicon](https://devicon.dev) (MIT); Cursor from [Simple Icons](https://simpleicons.org) (CC0); PowerPoint from Wikimedia Commons (public domain). Trademarks belong to their owners and are used only to show which tools Gopika works with.
 
 ## Other
 

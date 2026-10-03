@@ -28,6 +28,12 @@ interface UiState {
   hovered: string | null
   setHovered: (id: string | null) => void
 
+  /** Stardust game: stops whose star the rocket has collected, and whether the finale played. */
+  visited: number[]
+  visit: (i: number) => void
+  celebrated: boolean
+  celebrate: () => void
+
   /** Tool whose project links are shown in the asteroid belt (hover or tap). */
   tool: string | null
   setTool: (name: string | null) => void
@@ -49,6 +55,10 @@ export const useUi = create<UiState>((set) => ({
   closeViewAll: () => set({ viewAll: null }),
   hovered: null,
   setHovered: (hovered) => set({ hovered }),
+  visited: [],
+  visit: (i) => set((s) => (s.visited.includes(i) ? s : { visited: [...s.visited, i] })),
+  celebrated: false,
+  celebrate: () => set({ celebrated: true }),
   tool: null,
   setTool: (tool) => set({ tool }),
 }))

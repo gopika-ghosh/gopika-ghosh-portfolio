@@ -1,10 +1,10 @@
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { BackSide, Color, Euler, ExtrudeGeometry, Matrix4, Quaternion, Shape, Vector3, type Group, type InstancedMesh } from 'three'
+import { BackSide, Color, Euler, Matrix4, Quaternion, Vector3, type Group, type InstancedMesh } from 'three'
 import { quality } from '../../config/quality'
 import { seeded } from '../../lib/random'
 import { useShaderMaterial } from '../useShaderMaterial'
-import { clay } from './clayKit'
+import { clay, starGeometry } from './clayKit'
 
 /**
  * The toy universe's sky: a deep twilight gradient (dark enough for the light UI text)
@@ -56,20 +56,7 @@ function ClayStars({ count }: { count: number }) {
   const group = useRef<Group>(null)
   const mesh = useRef<InstancedMesh>(null)
 
-  // A soft, bevelled five-point star: reads as a puffy clay cut-out.
-  const geometry = useMemo(() => {
-    const shape = new Shape()
-    for (let i = 0; i < 10; i++) {
-      const a = (i / 10) * Math.PI * 2 + Math.PI / 2
-      const r = i % 2 === 0 ? 1 : 0.48
-      if (i === 0) shape.moveTo(Math.cos(a) * r, Math.sin(a) * r)
-      else shape.lineTo(Math.cos(a) * r, Math.sin(a) * r)
-    }
-    shape.closePath()
-    const g = new ExtrudeGeometry(shape, { depth: 0.25, bevelEnabled: true, bevelSize: 0.22, bevelThickness: 0.22, bevelSegments: 4, curveSegments: 4 })
-    g.center()
-    return g
-  }, [])
+  const geometry = starGeometry()
 
   useLayoutEffect(() => {
     const m = mesh.current!

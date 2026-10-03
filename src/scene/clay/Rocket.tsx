@@ -17,11 +17,12 @@ import {
 import { easing } from 'maath'
 import { cueBoop, cueWhoosh } from '../../audio/ambient'
 import { reducedMotion } from '../../lib/env'
+import { pointer } from '../../journey/pointer'
 import { scrollStore } from '../../journey/scrollStore'
-import type { Timeline } from '../../journey/timeline'
+import { locate, type Segment, type Timeline } from '../../journey/timeline'
 import { glideTo } from '../../journey/useSmoothScroll'
 import { isModalOpen, useUi } from '../../state/uiStore'
-import { clayGrain } from './clayKit'
+import { clayGrain, starGeometry } from './clayKit'
 
 /** Distance in front of the camera (scene units) — close enough to never pass behind a planet. */
 const DEPTH = 2.4
@@ -31,6 +32,14 @@ const SPOT = new Vector2(0.12, -0.62)
 const SIZE = 0.24
 const SPOT_PORTRAIT = new Vector2(0.62, 0.02)
 const PUFFS = 36
+/** Where a stop's stardust star appears, relative to the rocket (screen units). */
+const STAR_DELTA = new Vector2(0.22, 0.17)
+const SPARKS = 64
+const SPARK_COLORS = ['#ffd76a', '#fff3c4', '#ff9ec7', '#a7d8ff', '#b9a6ff', '#9fe3c1']
+const _star = new Vector3()
+const _off = new Vector2()
+const _starOff = new Vector2()
+const seg: Segment = { from: 0, to: 0, t: 0 }
 
 const _fwd = new Vector3()
 const _right = new Vector3()
@@ -48,6 +57,9 @@ const _jitter = new Vector3()
 /**
  * A little clay rocket that rides along the journey. It leans into flights and leaves a
  * trail of clay smoke; hover it to say hi, click it to fly to the next stop.
+ *
+ * Stardust: arriving at a stop you haven't visited makes a little star appear; the rocket
+ * zips over and collects it. Collect them all for a celebration.
  */
 export function Rocket({ timeline }: { timeline: Timeline }) {
   const root = useRef<Group>(null)
@@ -55,8 +67,17 @@ export function Rocket({ timeline }: { timeline: Timeline }) {
   const flame = useRef<Mesh>(null)
   const puffs = useRef<InstancedMesh>(null)
   const [hover, setHover] = useState(false)
-  const motion = useRef({ speed: 0, bank: 0, pitch: 0, roll: 0, spin: 0, show: 0, wiggle: 0, flare: 0 })
+  const motion = useRef({ speed: 0, bank: 0, pitch: 0, roll: 0, spin: 0, turns: 1, show: 0, wiggle: 0, flare: 0 })
   const started = useRef(false)
+  const star = useRef<Group>(null)
+  const sparks = useRef<InstancedMesh>(null)
+  // Stardust game: which stop is being collected, progress 0 to 1, time parked at the current stop.
+  const game = useRef({ stop: -1, t: 0, parked: 0, got: false })
+  const chase = useRef({ x: 0, y: 0, tilt: 0 })
+  const sparkPool = useMemo(
+    () => Array.from({ length: SPARKS }, () => ({ pos: new Vector3(), vel: new Vector3(), age: 1, life: 1, size: 0.01, spin: 0 })),
+    [],
+  )
 
   // Puff particles live in world space so the trail stays behind as the camera moves.
   const pool = useMemo(
@@ -94,11 +115,73 @@ export function Rocket({ timeline }: { timeline: Timeline }) {
     const tanY = Math.tan(MathUtils.degToRad(cam.fov / 2))
     const aspect = size.width / size.height
     const spot = aspect < 0.9 ? SPOT_PORTRAIT : SPOT
-    _target
-      .copy(cam.position)
-      .addScaledVector(_fwd, DEPTH)
-      .addScaledVector(_right, spot.x * DEPTH * tanY * aspect)
-      .addScaledVector(_up, spot.y * DEPTH * tanY)
+    /** Screen offset (half-extent units) to a world point at the rocket's depth. */
+    const toWorld = (o: Vector2, out: Vector3) =>
+      out
+        .copy(cam.position)
+        .addScaledVector(_fwd, DEPTH)
+        .addScaledVector(_right, o.x * DEPTH * tanY * aspect)
+        .addScaledVector(_up, o.y * DEPTH * tanY)
+
+    // Stardust game.
+    const g = game.current
+    locate(scrollStore.u, timeline, seg)
+    if (ui.ready && !ui.visited.includes(0)) ui.visit(0) // home counts as visited
+    if (g.stop < 0) {
+      // "At" a stop, with a tolerance: a glide can settle a hair short of the arrival point.
+      const here = seg.from === seg.to || seg.t > 0.98 ? seg.to : seg.t < 0.02 ? seg.from : -1
+      const parked = here >= 0 && !scrollStore.gliding && !isModalOpen(ui)
+      g.parked = parked ? g.parked + dt : 0
+      if (ui.ready && g.parked > 0.4 && !ui.visited.includes(here)) {
+        g.stop = here
+        g.t = 0
+        g.got = false
+      }
+    } else {
+      g.t = Math.min(1, g.t + dt / (reducedMotion ? 0.6 : 1.2))
+      if (!g.got && g.t >= 0.56) {
+        g.got = true
+        ui.visit(g.stop)
+        burst(sparkPool, sparks.current, _star, 16, 0.5)
+        cueBoop(2.2)
+        // All stops visited: the finale.
+        const all = timeline.stops.every((st) => useUi.getState().visited.includes(st.index))
+        if (all && !useUi.getState().celebrated) {
+          useUi.getState().celebrate()
+          if (!reducedMotion) {
+            m.spin = 1
+            m.turns = 3
+          }
+          m.flare = 1
+          burst(sparkPool, sparks.current, _star, SPARKS, 1.3)
+          cueWhoosh()
+        }
+      }
+      if (g.t >= 1) g.stop = -1
+    }
+    // Rocket hop toward the star and back (with a little arc).
+    const k =
+      g.stop < 0 || reducedMotion
+        ? 0
+        : g.t < 0.22
+          ? 0
+          : g.t < 0.56
+            ? easeInOut((g.t - 0.22) / 0.34)
+            : 1 - easeInOut((g.t - 0.56) / 0.44)
+
+    // Personality: drift toward a nearby cursor and lean to look at it.
+    const dx = pointer.x - spot.x
+    const dy = pointer.y - spot.y
+    const near = !reducedMotion && Math.hypot(dx, dy * 0.6) < 0.45 ? 1 : 0
+    easing.damp(chase.current, 'x', MathUtils.clamp(dx * 0.3, -0.08, 0.08) * near, 0.4, dt)
+    easing.damp(chase.current, 'y', MathUtils.clamp(dy * 0.3, -0.08, 0.08) * near, 0.4, dt)
+    easing.damp(chase.current, 'tilt', -MathUtils.clamp(dx, -0.6, 0.6) * near, 0.3, dt)
+
+    _starOff.copy(spot).add(STAR_DELTA)
+    toWorld(_starOff, _star)
+    _off.copy(spot).add(_q2.set(chase.current.x, chase.current.y)).addScaledVector(STAR_DELTA, k * 0.92)
+    _off.y += Math.sin(Math.PI * k) * 0.06
+    toWorld(_off, _target)
 
     // How fast (and which way) the camera is moving, in screen terms.
     if (!started.current) {
@@ -118,7 +201,7 @@ export function Rocket({ timeline }: { timeline: Timeline }) {
     easing.damp(m, 'show', isModalOpen(ui) || !ui.ready ? 0 : 1, 0.25, dt)
     easing.damp(m, 'wiggle', hover ? 1 : 0, 0.15, dt)
     easing.damp(m, 'flare', 0, 0.5, dt)
-    m.spin = Math.max(0, m.spin - dt * 1.6)
+    m.spin = Math.max(0, m.spin - (dt * 1.6) / m.turns)
 
     r.position.copy(_target)
     // Face the camera's frame, then add the toy pose: nose up-right, leaning into motion.
@@ -130,9 +213,10 @@ export function Rocket({ timeline }: { timeline: Timeline }) {
     s.rotation.set(
       -0.35 - m.pitch * 0.8, // lean forward (into the screen) when flying outward
       0,
-      -0.55 + m.bank + Math.sin(t * 9) * 0.12 * m.wiggle,
+      -0.55 + m.bank + chase.current.tilt + Math.sin(t * 9) * 0.12 * m.wiggle,
     )
-    s.rotateY(t * 0.6 + easeSpin(m.spin) * Math.PI * 2) // slow turn + barrel roll on click
+    // Slow turn + barrel roll(s): one on click, three for the finale.
+    s.rotateY(t * 0.6 + easeSpin(m.spin) * Math.PI * 2 * m.turns)
     s.scale.setScalar(SIZE * m.show * (1 + m.wiggle * 0.08))
 
     // Flame: flickers, grows with speed and on take-off.
@@ -170,13 +254,42 @@ export function Rocket({ timeline }: { timeline: Timeline }) {
       })
       p.instanceMatrix.needsUpdate = true
     }
+
+    // The stop's star: pops in, spins, vanishes into the rocket.
+    if (star.current) {
+      const st = star.current
+      const pop = g.stop < 0 ? 0 : g.t < 0.22 ? easeOutBack(g.t / 0.22) : g.t < 0.56 ? 1 : 0
+      st.visible = pop > 0.001
+      st.position.copy(_star)
+      st.quaternion.copy(_look)
+      st.rotateZ(t * 2.5)
+      st.scale.setScalar(0.04 * pop * (1 + Math.sin(t * 8) * 0.06))
+    }
+
+    // Sparkles.
+    const sp = sparks.current
+    if (sp) {
+      sparkPool.forEach((q, i) => {
+        q.age += dt
+        q.vel.multiplyScalar(Math.exp(-2.5 * dt))
+        q.pos.addScaledVector(q.vel, dt)
+        const kk = q.age / q.life
+        const sc = kk >= 1 ? 0 : q.size * (1 - kk)
+        _q.copy(_look).multiply(_q3.setFromAxisAngle(_z, q.spin + t * 3))
+        sp.setMatrixAt(i, _m.compose(q.pos, _q, _s.setScalar(sc)))
+      })
+      sp.instanceMatrix.needsUpdate = true
+    }
   })
 
   const ride = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
     if (!useUi.getState().ready || isModalOpen(useUi.getState())) return
     const m = motion.current
-    if (!reducedMotion) m.spin = 1
+    if (!reducedMotion) {
+      m.spin = 1
+      m.turns = 1
+    }
     m.flare = 1
     cueBoop(1.1)
     cueWhoosh()
@@ -257,6 +370,14 @@ export function Rocket({ timeline }: { timeline: Timeline }) {
           )}
         </group>
       </group>
+      <group ref={star} visible={false}>
+        <mesh geometry={starGeometry()}>
+          <meshBasicMaterial color={GOLD} toneMapped={false} />
+        </mesh>
+      </group>
+      <instancedMesh ref={sparks} args={[starGeometry(), undefined, SPARKS]} frustumCulled={false}>
+        <meshBasicMaterial toneMapped={false} />
+      </instancedMesh>
       <instancedMesh ref={puffs} args={[undefined, undefined, PUFFS]} frustumCulled={false}>
         <sphereGeometry args={[1, 12, 10]} />
         <meshStandardMaterial color="#fff2e6" roughness={0.9} emissive="#ffb08a" emissiveIntensity={0.25} />
@@ -264,6 +385,37 @@ export function Rocket({ timeline }: { timeline: Timeline }) {
     </group>
   )
 }
+
+const _q2 = new Vector2()
+const _q3 = new Quaternion()
+const _z = new Vector3(0, 0, 1)
+const _c = new Color()
+/** HDR gold so the star blooms. */
+const GOLD = new Color(1.7, 1.35, 0.5)
+
+type Spark = { pos: Vector3; vel: Vector3; age: number; life: number; size: number; spin: number }
+/** Throw `n` coloured sparkle stars out from `at`. `power` scales speed and size. */
+function burst(pool: Spark[], mesh: InstancedMesh | null, at: Vector3, n: number, power: number) {
+  let made = 0
+  pool.forEach((q, i) => {
+    if (made >= n || q.age < q.life) return
+    made++
+    q.pos.copy(at)
+    q.vel
+      .set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5)
+      .normalize()
+      .multiplyScalar((0.25 + Math.random() * 0.45) * power)
+    q.age = 0
+    q.life = 0.7 + Math.random() * 0.6 * power
+    q.size = (0.008 + Math.random() * 0.01) * (0.8 + power * 0.4)
+    q.spin = Math.random() * 6.28
+    mesh?.setColorAt(i, _c.set(SPARK_COLORS[i % SPARK_COLORS.length]).multiplyScalar(1.4))
+  })
+  if (mesh?.instanceColor) mesh.instanceColor.needsUpdate = true
+}
+
+const easeInOut = (x: number) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2)
+const easeOutBack = (x: number) => 1 + 2.4 * Math.pow(x - 1, 3) + 1.4 * Math.pow(x - 1, 2)
 
 /** HDR orange so the flame blooms. */
 const FLAME = new Color(2.2, 1.0, 0.35)

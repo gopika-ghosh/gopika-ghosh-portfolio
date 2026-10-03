@@ -3,6 +3,7 @@ import { useAudioCues } from './audio/useAudioCues'
 import { journeyChapters as chapters } from './content'
 import { webglAvailable } from './lib/env'
 import { scrollStore } from './journey/scrollStore'
+import { useUi } from './state/uiStore'
 import { buildTimeline } from './journey/timeline'
 import { useSmoothScroll } from './journey/useSmoothScroll'
 import { Chapters } from './ui/Chapters'
@@ -39,7 +40,7 @@ function Journey({ onFail }: { onFail: (e: unknown) => void }) {
   useAudioCues(timeline)
 
   // Debug handle for scripts/inspect.mjs.
-  if (debug) Object.assign(window, { __journey: { stops: timeline.stops, unit: () => scrollStore.unit } })
+  if (debug) Object.assign(window, { __journey: { stops: timeline.stops, unit: () => scrollStore.unit, ui: useUi, scroll: scrollStore } })
 
   return (
     <>
