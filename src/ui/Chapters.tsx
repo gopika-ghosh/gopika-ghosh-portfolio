@@ -95,7 +95,7 @@ function ChapterSection({ stop, onOverflow }: { stop: Stop; onOverflow?: (index:
       {/* Scroll spent parked here: the content pins for (dwell − 1) units. The #anchor lives
           here (not on the section) so native #links land exactly where the camera arrives. */}
       <div id={chapter.id} style={units(dwell)}>
-        <div ref={box} className={`sticky top-0 flex px-6 md:px-16 ${layout}`} style={{ minHeight: units(1).height }}>
+        <div ref={box} className={`sticky top-0 flex px-4 md:px-16 ${layout}`} style={{ minHeight: units(1).height }}>
           <Content chapter={chapter} index={stop.index} />
         </div>
       </div>
@@ -165,12 +165,7 @@ function Panel({
   children?: ReactNode
 }) {
   return (
-    <div className={`pointer-events-auto relative isolate w-full ${wide ? 'max-w-xl' : 'max-w-md'}`}>
-      {/* Phones: the text runs over the planets, so it gets a soft dark backdrop to stay readable. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -inset-x-6 -top-12 -bottom-10 -z-10 bg-gradient-to-b from-transparent via-[#07051a]/80 via-[3rem] to-[#07051a]/85 md:hidden"
-      />
+    <div className={`glass-phone pointer-events-auto w-full ${wide ? 'max-w-xl' : 'max-w-md'}`}>
       <p {...r(0)} className="mb-3 text-xs tracking-[0.3em] text-sun/80 uppercase">
         <span className="reveal-rule" aria-hidden="true" />
         {String(index).padStart(2, '0')} · {chapter.navLabel}
@@ -412,7 +407,7 @@ function Experience() {
 
 function Contact({ chapter, index }: { chapter: Chapter; index: number }) {
   return (
-    <div className="pointer-events-auto max-w-xl">
+    <div className="glass-phone pointer-events-auto max-w-xl">
       <p {...r(0)} className="mb-3 text-xs tracking-[0.3em] text-sun/80 uppercase">
         {String(index).padStart(2, '0')} · {chapter.navLabel}
       </p>

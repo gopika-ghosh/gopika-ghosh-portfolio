@@ -53,6 +53,27 @@ main p {
   pointer-events: none;
 }
 
+/* Phones: chapter text sits on a frosted-glass card (like the skill chips), so it stays
+   readable over planets and while scrolling. The card fades with its chapter. */
+@media (max-width: 767px) {
+  .glass-phone {
+    border: 1px solid rgb(255 255 255 / 0.12);
+    border-radius: 1.5rem;
+    padding: 1.25rem 1.25rem 1.4rem;
+    background: linear-gradient(160deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02)), rgb(10 8 30 / 0.5);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.08),
+      0 18px 40px -18px rgb(0 0 0 / 0.75);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3);
+    backdrop-filter: blur(14px) saturate(1.3);
+    transition: opacity 0.5s ease;
+  }
+  [data-state='out'] .glass-phone {
+    opacity: 0;
+    transition-duration: 0.25s;
+  }
+}
+
 /* ── Chapter reveal choreography ─────────────────────────────────────────
    Sections get data-state="in" when they become the active stop. Children
    marked [data-reveal] rise and fade in with a stagger (--i); leaving is
