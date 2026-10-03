@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { PHONE_SPOT, PHONE_SPOT_INTRO } from '../config/guideSpots'
 import { site } from '../content/site'
 import { scrollStore } from '../journey/scrollStore'
 import { locate, type Segment, type Timeline } from '../journey/timeline'
@@ -8,6 +9,9 @@ import { SoundToggle } from './SoundToggle'
 import { useDialog } from './useDialog'
 
 const seg: Segment = { from: 0, to: 0, t: 0 }
+
+/** Screen position (CSS) for a guide spot given in fractions of half the screen. */
+const guideSpot = (p: { x: number; y: number }) => ({ left: `${(1 + p.x) * 50}%`, top: `${(1 - p.y) * 50}%` })
 
 /**
  * Fixed navigation:
@@ -137,6 +141,18 @@ export function Nav({ timeline }: { timeline: Timeline }) {
           </ol>
         </div>
       </nav>
+
+      {/* Phones: tap target over the star guide (the canvas sits under the chapter text there). */}
+      {ready && (
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-hidden="true"
+          onClick={() => window.dispatchEvent(new Event('guide:tap'))}
+          style={guideSpot(timeline.stops[active]?.chapter.kind === 'intro' ? PHONE_SPOT_INTRO : PHONE_SPOT)}
+          className={`fixed z-30 size-12 -translate-x-1/2 -translate-y-1/2 rounded-full md:hidden ${fade}`}
+        />
+      )}
 
       <MobileMenu open={menu} onClose={() => setMenu(false)} timeline={timeline} active={active} go={go} />
     </>

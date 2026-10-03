@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei'
 import { Color, MathUtils, Matrix4, Quaternion, Vector2, Vector3, type Group, type PerspectiveCamera } from 'three'
 import { easing } from 'maath'
 import { cueBoop } from '../../audio/ambient'
+import { PHONE_MAX, PHONE_SPOT, PHONE_SPOT_INTRO } from '../../config/guideSpots'
 import { workById } from '../../content'
 import { fill, guide } from '../../content/guide'
 import { works } from '../../content/works'
@@ -19,17 +20,14 @@ import { clayGrain, starGeometry } from './clayKit'
 const DEPTH = 2.4
 /** Where she floats on screen (fractions of half-width/height), clear of the text. */
 const SPOT = new Vector2(0.8, -0.7)
-/** Phones: tucked into the bottom-right corner, out of the text. */
-const SPOT_PHONE = new Vector2(0.8, -0.88)
-/** Phones, opening shot: a little higher, so her greeting clears "Scroll to explore". */
-const SPOT_PHONE_INTRO = new Vector2(0.8, -0.42)
+/** Phones: tucked into the bottom-right corner, out of the text (see config/guideSpots). */
+const SPOT_PHONE = new Vector2(PHONE_SPOT.x, PHONE_SPOT.y)
+const SPOT_PHONE_INTRO = new Vector2(PHONE_SPOT_INTRO.x, PHONE_SPOT_INTRO.y)
 /** While a project panel covers the right half, she hops to the left to comment on it. */
 const SPOT_PANEL = new Vector2(-0.7, -0.55)
 const SIZE = 0.085
 /** Phones (narrower than 640px) get a much smaller star. */
 const SIZE_PHONE = 0.05
-/** Phone layout below this width (matches the md breakpoint). */
-const PHONE_MAX = 768
 /** How long a reaction stays up before she returns to the stop's line (ms). */
 const REMARK_MS = 4800
 /** How long a stop's line stays up before the bubble tucks away (ms, plus reading time). */
@@ -208,6 +206,16 @@ export function StarGuide({ timeline }: { timeline: Timeline }) {
     tipIndex.current++
     useUi.getState().say(tip)
   }
+
+  // Phones: the chapter text covers her corner of the canvas, so Nav puts a tap target
+  // there in the page layer and signals her with this event.
+  const tapRef = useRef(tap)
+  tapRef.current = tap
+  useEffect(() => {
+    const on = () => tapRef.current()
+    window.addEventListener('guide:tap', on)
+    return () => window.removeEventListener('guide:tap', on)
+  }, [])
 
   const next = () => {
     const u = scrollStore.u
