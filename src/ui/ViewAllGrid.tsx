@@ -6,7 +6,7 @@ import { useDialog } from './useDialog'
 
 /**
  * Every work in a category as a grid — opened from a planet's "+N" moon or the
- * chapter's "View all" link when there are more works than moons.
+ * chapter's "More work" link when there are more works than moons.
  */
 export function ViewAllGrid() {
   const category = useUi((s) => s.viewAll)

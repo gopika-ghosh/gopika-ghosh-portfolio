@@ -257,7 +257,7 @@ function WorksList({ chapter }: { chapter: Chapter }) {
             onClick={() => openViewAll(chapter.category!)}
             className="tracking-[0.2em] text-sun/85 uppercase transition hover:text-sun"
           >
-            View all {list.length} →
+            {list.length > max ? `More work · ${list.length}` : `View all ${list.length}`} →
           </button>
         )}
       </div>

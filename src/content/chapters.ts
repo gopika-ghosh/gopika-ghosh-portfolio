@@ -52,6 +52,7 @@ export const chapters: Chapter[] = [
     station: 'mars',
     kind: 'works',
     category: 'graphic',
+    maxVisibleWorks: 4, // featured ones as moons; the rest under "More work"
     dwell: 1.6,
     navLabel: 'Mars',
     heading: 'Graphic Design',
@@ -70,6 +71,7 @@ export const chapters: Chapter[] = [
     station: 'jupiter',
     kind: 'works',
     category: 'video',
+    maxVisibleWorks: 4, // featured ones as moons; the rest under "More work"
     dwell: 1.6,
     navLabel: 'Jupiter',
     heading: 'Video Editing',

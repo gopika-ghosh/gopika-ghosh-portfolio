@@ -21,7 +21,7 @@ Everything you'll want to change is in `src/content/`. **See [CONTENT_GUIDE.md](
 
 Before launch, check these:
 - `src/content/site.ts`: name, `url` (your real domain), email, socials, bio, photo
-- `src/content/works.ts`: graphic and video projects still use placeholder images; add her artwork and Instagram post links
+- `src/content/works.ts`: client posters and reels come from `assets-src/works.xlsx` (see CONTENT_GUIDE); Logo Design and POKAK creatives still use placeholder images
 - `src/content/guide.ts`: what the little star says at each stop (and her reactions)
 - `src/content/testimonials.ts`: the quotes and awards are **fictional placeholders**, so replace or empty them
 - `public/gopika-resume.pdf`: your CV
@@ -60,6 +60,8 @@ Add the domain in your host's dashboard, then set the same address as `url` in `
 | `npm run clay-textures` | Re-paint the clay planets' textures after changing `src/scene/clay/painters.ts` |
 | `npm run textures` | Rebuild the realistic theme's planet textures (see [ASSETS.md](ASSETS.md)) |
 | `npm run capture-sites` | Re-screenshot the live websites used as UI/UX project images |
+| `npm run import-works` | Read `assets-src/works.xlsx` into `src/content/embeds.ts` (Python + openpyxl) |
+| `npm run capture-posts` | Capture images of the Instagram posts for moons and previews |
 | `npm run og-image` | Refresh the link-preview image and touch icon |
 
 ## How it behaves

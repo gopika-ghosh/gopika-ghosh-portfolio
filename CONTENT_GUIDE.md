@@ -71,34 +71,29 @@ video: { url: '/media/showreel.mp4', poster: '/images/works/showreel-2025/01.web
 
 The video replaces the hero image in the project panel. Nothing loads from YouTube or Vimeo until the visitor presses play, which keeps the site fast and avoids tracking cookies.
 
-## Show Instagram posts and reels
+## Instagram and LinkedIn posts (from the spreadsheet)
 
-Each project can link to a client's Instagram account and embed specific posts or reels:
+Gopika's client posters and reels come from **`assets-src/works.xlsx`**, sheet *All Client Works*, with the columns `No. | Client | Work Type | Link`. To add or remove posts:
 
-```ts
-instagram: {
-  profile: 'https://www.instagram.com/inhavo.furniture/',   // "See more on Instagram" button
-  posts: [
-    'https://www.instagram.com/p/ABC123xyz/',               // a post
-    'https://www.instagram.com/reel/DEF456uvw/',            // a reel
-  ],
-},
-links: [{ label: 'Nexa on LinkedIn', url: 'https://www.linkedin.com/company/…' }],  // optional extra buttons
-```
+1. Edit the spreadsheet. Work types: `Instagram Post` and `LinkedIn Post` go to Graphic Design (Mars); `Video`, `Video Editing` and `AI Video` go to Video Editing (Jupiter).
+2. Run `npm run import-works`. This regenerates `src/content/embeds.ts` (don't edit that file by hand) and reports any row it couldn't place.
+3. Run `npm run capture-posts`. This saves images of the first few posts per project to use as the moon surface, thumbnail and preview tiles.
 
-Get a post's link from Instagram with **Share → Copy link**. Tracking bits such as `?igsh=…` are fine; they're ignored. Embeds load only when a visitor clicks them, which keeps the site fast. Instagram doesn't allow embedding a whole profile, so link the profile and pick a few posts.
+**A new client** needs two small additions:
+- in `scripts/import-works.py`, add the client name to `CLIENTS` with a short id, for example `'New Brand': 'newbrand'`;
+- in `works.ts`, add a project with id `newbrand-creatives` (and/or `newbrand-reels`), following the existing ones.
 
-Instagram can't supply the moon thumbnail or gallery images. Export those from the original files and add them as described in [Change images](#change-images).
+In the project panel, the first post loads straight away and the rest show as tiles; tap a tile to play it. The client's profile goes in `instagram: { profile: '…' }`, shown as "See more on Instagram".
 
 ## Too many projects for one planet?
 
-Each planet shows up to **8 moons** by default. If a category has more, the extra projects are gathered into a **"+N" moon** that opens a grid of every project. To change the limit for one planet, add this to its chapter in `chapters.ts`:
+Each planet shows up to **8 moons** by default (Graphic Design and Video Editing are set to 4, so only the highlights are moons). If a category has more, the extra projects are gathered into a **"+N" moon** that opens a grid of every project. To change the limit for one planet, add this to its chapter in `chapters.ts`:
 
 ```ts
 maxVisibleWorks: 6,
 ```
 
-Featured projects always get their own moon.
+Featured projects always get their own moon, and the order in `works.ts` decides which others do. Everything else sits under the **"More work"** moon and link.
 
 ## Change images
 

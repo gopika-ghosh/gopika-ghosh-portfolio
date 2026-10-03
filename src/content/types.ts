@@ -98,11 +98,10 @@ export interface Work {
   video?: VideoSource
   externalLink?: { label: string; url: string }
   /**
-   * Instagram: the account's profile (shown as "See more on Instagram") and specific
-   * posts/reels to embed in the project panel (instagram.com/p/… or /reel/… links).
-   * Embeds load only when the visitor clicks them.
+   * The client's Instagram profile (shown as "See more on Instagram"). The posts and reels
+   * shown in the panel come from src/content/embeds.ts (generated from works.xlsx).
    */
-  instagram?: { profile?: string; posts?: string[] }
+  instagram?: { profile?: string }
   /** Extra links shown in the project panel, e.g. a LinkedIn page. */
   links?: { label: string; url: string }[]
   /** Featured works get slightly larger moons and are listed first. */

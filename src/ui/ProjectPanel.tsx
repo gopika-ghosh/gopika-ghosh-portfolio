@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { categoryLabel, sortedWorks, workById } from '../content'
 import type { Work } from '../content/types'
-import { cleanInstagramUrl, instagramEmbed } from '../lib/instagram'
+import { cleanInstagramUrl, socialEmbed, type SocialEmbed } from '../lib/instagram'
+import { embeds } from '../content/embeds'
 import { parseVideo } from '../lib/video'
 import { useUi } from '../state/uiStore'
 import { useDialog } from './useDialog'
@@ -37,6 +38,7 @@ export function ProjectPanel() {
 
   const work = shownId ? workById.get(shownId) : undefined
   if (!work) return null
+  const posts = (embeds[work.id] ?? []).map(socialEmbed).filter((e): e is SocialEmbed => !!e)
 
   return (
     <div
@@ -88,7 +90,7 @@ export function ProjectPanel() {
         )}
 
         <div data-reveal style={{ '--i': 4 } as CSSProperties} className="mt-7">
-          <Hero work={work} key={work.id} />
+          {posts.length > 0 ? <SocialFeed work={work} posts={posts} key={work.id} /> : <Hero work={work} key={work.id} />}
         </div>
 
         <div className="mt-7 space-y-4 text-[15px] leading-relaxed text-white/75">
@@ -99,11 +101,9 @@ export function ProjectPanel() {
 
         <Links work={work} />
 
-        {work.instagram?.posts && work.instagram.posts.length > 0 && <InstagramPosts work={work} />}
-
-        {/* The first image is the hero (unless there's a video), the rest form the gallery. */}
+        {/* Gallery: the first image is the hero (unless there's a video or a social feed). */}
         <div className="mt-8 grid gap-3">
-          {work.images.slice(work.video ? 0 : 1).map((src, i) => (
+          {(posts.length > 0 ? [] : work.images.slice(work.video ? 0 : 1)).map((src, i) => (
             <img
               key={src}
               src={src}
@@ -156,62 +156,91 @@ function Links({ work }: { work: Work }) {
   )
 }
 
-/**
- * Embedded Instagram posts/reels. Each loads only when clicked, so Instagram's
- * player (and its tracking) never loads unless the visitor asks for it.
- */
-function InstagramPosts({ work }: { work: Work }) {
-  const posts = (work.instagram?.posts ?? []).map((url) => ({ url, embed: instagramEmbed(url) })).filter((p) => p.embed)
-  if (!posts.length) return null
-  return (
-    <section className="mt-8" aria-label="On Instagram">
-      <h3 className="mb-3 text-[11px] tracking-[0.25em] text-white/45 uppercase">On Instagram</h3>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {posts.map((p, i) => (
-          <InstagramEmbed key={p.url} src={p.embed!.src} kind={p.embed!.kind} index={i + 1} title={work.title} />
-        ))}
-      </div>
-    </section>
-  )
-}
+/** How many preview tiles show before "Show all". */
+const TILE_LIMIT = 9
 
-function InstagramEmbed({ src, kind, index, title }: { src: string; kind: 'post' | 'reel'; index: number; title: string }) {
-  const [loaded, setLoaded] = useState(false)
-  if (loaded) {
-    return (
-      <iframe
-        src={src}
-        title={`${title} — Instagram ${kind} ${index}`}
-        loading="lazy"
-        allow="autoplay; encrypted-media; picture-in-picture"
-        className="h-[560px] w-full rounded-xl border-0 bg-white"
-      />
-    )
+/**
+ * A project's posts and reels. One live embed at a time (the first loads straight away);
+ * the rest are preview tiles — click one to load it into the player. Keeps the panel
+ * fast even for a client with 30+ posts.
+ */
+function SocialFeed({ work, posts }: { work: Work; posts: SocialEmbed[] }) {
+  const [current, setCurrent] = useState(0)
+  const [all, setAll] = useState(false)
+  const live = posts[current]
+  const tiles = all ? posts : posts.slice(0, TILE_LIMIT)
+  const counts = {
+    posts: posts.filter((p) => p.kind === 'post').length,
+    reels: posts.filter((p) => p.kind === 'reel').length,
+    linkedin: posts.filter((p) => p.kind === 'linkedin').length,
   }
+  const summary = [
+    counts.posts && `${counts.posts} post${counts.posts > 1 ? 's' : ''}`,
+    counts.reels && `${counts.reels} reel${counts.reels > 1 ? 's' : ''}`,
+    counts.linkedin && `${counts.linkedin} LinkedIn post${counts.linkedin > 1 ? 's' : ''}`,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
   return (
-    <button
-      type="button"
-      onClick={() => setLoaded(true)}
-      className="group grid aspect-[4/5] w-full place-items-center rounded-xl border border-white/10 bg-gradient-to-br from-[#2a1a3a] via-[#3a1f2a] to-[#4a2a14] text-sm text-white/80 transition hover:border-sun/60"
-    >
-      <span className="flex flex-col items-center gap-3">
-        <span className="grid size-14 place-items-center rounded-full bg-black/35 ring-1 ring-white/40 transition group-hover:scale-105 group-hover:ring-sun">
-          {kind === 'reel' ? (
-            <svg viewBox="0 0 24 24" className="ml-1 size-5 fill-white" aria-hidden="true">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-              <rect x="3" y="3" width="18" height="18" rx="5" />
-              <circle cx="12" cy="12" r="4" />
-              <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
-            </svg>
+    <section aria-label={`${work.title}: posts and reels`}>
+      <div className="overflow-hidden rounded-xl bg-white">
+        <iframe
+          key={live.src}
+          src={live.src}
+          title={`${work.title} — ${live.provider} ${live.kind === 'reel' ? 'reel' : 'post'} ${current + 1}`}
+          allow="autoplay; encrypted-media; picture-in-picture; clipboard-write"
+          className={`block w-full border-0 ${live.kind === 'linkedin' ? 'h-[560px]' : live.kind === 'reel' ? 'h-[720px]' : 'h-[640px]'}`}
+        />
+      </div>
+      {posts.length > 1 && (
+        <>
+          <div className="mt-5 mb-3 flex items-baseline justify-between">
+            <h3 className="text-[11px] tracking-[0.25em] text-white/45 uppercase">{summary}</h3>
+            <span className="text-[11px] text-white/35">Tap to play</span>
+          </div>
+          <ul className="grid grid-cols-3 gap-2">
+            {tiles.map((p, i) => (
+              <li key={p.url}>
+                <button
+                  type="button"
+                  onClick={() => setCurrent(i)}
+                  aria-current={i === current}
+                  aria-label={`Show ${p.provider} ${p.kind === 'reel' ? 'reel' : 'post'} ${i + 1}`}
+                  className={`group relative grid aspect-square w-full place-items-center overflow-hidden rounded-lg border transition ${
+                    i === current ? 'border-sun ring-2 ring-sun/40' : 'border-white/10 hover:border-sun/60'
+                  } bg-gradient-to-br from-[#2a1a3a] via-[#3a1f2a] to-[#4a2a14]`}
+                >
+                  {/* Captured preview where we have one (npm run capture-posts), otherwise an icon. */}
+                  {work.images[i] && p.provider === 'Instagram' ? (
+                    <img src={work.images[i]} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition group-hover:scale-105" />
+                  ) : null}
+                  <span className="relative grid size-9 place-items-center rounded-full bg-black/45 ring-1 ring-white/40 backdrop-blur-sm">
+                    {p.kind === 'reel' ? (
+                      <svg viewBox="0 0 24 24" className="ml-0.5 size-4 fill-white" aria-hidden="true">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    ) : p.kind === 'linkedin' ? (
+                      <span className="text-[11px] font-bold text-white">in</span>
+                    ) : (
+                      <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="white" strokeWidth="1.8" aria-hidden="true">
+                        <rect x="3" y="3" width="18" height="18" rx="5" />
+                        <circle cx="12" cy="12" r="4" />
+                      </svg>
+                    )}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {!all && posts.length > TILE_LIMIT && (
+            <button type="button" onClick={() => setAll(true)} className="mt-3 text-xs tracking-[0.2em] text-sun/85 uppercase hover:text-sun">
+              Show all {posts.length} →
+            </button>
           )}
-        </span>
-        {kind === 'reel' ? 'Play reel' : 'View post'} {index}
-        <span className="text-[11px] text-white/45">Loads from Instagram</span>
-      </span>
-    </button>
+        </>
+      )}
+    </section>
   )
 }
 
