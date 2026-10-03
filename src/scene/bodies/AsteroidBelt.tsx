@@ -1,3 +1,4 @@
+import { theme } from '../../lib/env'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import {
@@ -86,7 +87,11 @@ function Rocks({ geometry, material, count, seed, spread, centre = 0, sizes, thi
     const c = new Color()
     const spin = new Float32Array(count * 4)
     const { inner, outer } = asteroidBelt
-    const palette = ['#7d7166', '#6a5f55', '#8a7c6c', '#5c534c', '#9a8975', '#6f6a66']
+    // Clay theme: candy-coloured pebbles instead of grey rock.
+    const palette =
+      theme === 'clay'
+        ? ['#f7a1c4', '#a7d8ff', '#ffd27a', '#b9a6ff', '#9fe3c1', '#ffb08a']
+        : ['#7d7166', '#6a5f55', '#8a7c6c', '#5c534c', '#9a8975', '#6f6a66']
 
     for (let i = 0; i < count; i++) {
       const a = centre + (rand() - 0.5) * spread

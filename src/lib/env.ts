@@ -27,3 +27,9 @@ export const webglAvailable = (() => {
     return false
   }
 })()
+
+/**
+ * Visual theme. 'real' = cinematic space (default); 'clay' = a hand-made toy universe.
+ * Test with ?theme=clay.
+ */
+export const theme: 'real' | 'clay' = params.get('theme') === 'clay' ? 'clay' : 'real'

@@ -14,7 +14,7 @@ const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`)
   return i > -1 ? process.argv[i + 1] : fallback
 }
-const url = arg('url', 'http://localhost:5173') + '/?debug'
+const url = arg('url', 'http://localhost:5173') + '/?debug' + arg('q', '')
 const out = arg('out', 'inspect-out')
 const [width, height] = arg('size', '1568x710').split('x').map(Number)
 const stopsArg = arg('stops', 'all')

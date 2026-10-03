@@ -1,3 +1,4 @@
+import { theme } from '../../lib/env'
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Line } from '@react-three/drei'
@@ -63,8 +64,8 @@ export function OrbitLines({ timeline }: { timeline: Timeline }) {
           key={o.id}
           ref={(el) => void (lines.current[i] = el as unknown as Line2 | null)}
           points={o.points}
-          color="#ffd9a8"
-          lineWidth={1}
+          color={theme === 'clay' ? '#c9b8ff' : '#ffd9a8'}
+          lineWidth={theme === 'clay' ? 1.5 : 1}
           transparent
           opacity={OVERVIEW}
           depthWrite={false}

@@ -1,6 +1,6 @@
 import { Suspense, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { PerformanceMonitor } from '@react-three/drei'
+import { PerformanceMonitor, useTexture } from '@react-three/drei'
 import { bodyList, type BodyDef, type BodyLook } from '../config/bodies'
 import { quality } from '../config/quality'
 import { CameraRig } from '../journey/CameraRig'
@@ -23,14 +23,22 @@ import { ToolLinks } from './features/ToolLinks'
 import { MOON_TEXTURE, MoonSystem } from './moons/MoonSystem'
 import { experience } from '../content/experience'
 import { useUi } from '../state/uiStore'
+import { theme } from '../lib/env'
+import { ClayPlanet } from './clay/ClayPlanet'
+import { ClaySky } from './clay/ClaySky'
+import { ClaySun } from './clay/ClaySun'
+import { clay, clayMapUrl } from './clay/clayKit'
 
 const MAX_DPR = Math.min(quality.maxDpr, window.devicePixelRatio || 1)
 const planets = bodyList.filter((b): b is BodyDef & { look: BodyLook } => b.kind === 'planet' && !!b.look)
-const allTextures: TextureSpec[] = [
-  MILKY_WAY.map,
-  MOON_TEXTURE.map,
-  ...planets.flatMap((p) => Object.values(p.look.textures).filter((t): t is TextureSpec => !!t)),
-]
+const isClay = theme === 'clay'
+// The clay theme paints its planets in code, so it only needs the moon texture.
+const allTextures: TextureSpec[] = isClay
+  ? [MOON_TEXTURE.map]
+  : [MILKY_WAY.map, MOON_TEXTURE.map, ...planets.flatMap((p) => Object.values(p.look.textures).filter((t): t is TextureSpec => !!t))]
+const PlanetBody = isClay ? ClayPlanet : Planet
+// Start every clay texture download in parallel (React suspends siblings one by one otherwise).
+if (isClay) useTexture.preload(['sun', ...planets.map((p) => p.id)].map(clayMapUrl))
 
 /** The fixed, full-screen WebGL layer behind the scrolling HTML. */
 export function Experience({ timeline, onContextLost }: { timeline: Timeline; onContextLost?: (e: unknown) => void }) {
@@ -63,7 +71,7 @@ export function Experience({ timeline, onContextLost }: { timeline: Timeline; on
           if (useUi.getState().openWorkId) useUi.getState().closeWork()
         }}
       >
-        <color attach="background" args={['#030409']} />
+        <color attach="background" args={[isClay ? clay.sky.mid : '#030409']} />
         <PerformanceMonitor
           onIncline={() => setDpr(MAX_DPR)}
           onDecline={() => setDpr((d) => Math.max(1, d * 0.75))}
@@ -74,16 +82,27 @@ export function Experience({ timeline, onContextLost }: { timeline: Timeline; on
         <PreloadTextures specs={allTextures} />
 
         <Suspense fallback={null}>
-          <MilkyWay />
-          <Starfield density={quality.starDensity} />
-          <Sun />
+          {isClay ? (
+            <>
+              <ClaySky />
+              <ClaySun />
+              {/* Soft twilight fill so clay never goes pitch black on its night side. */}
+              <hemisphereLight args={['#b9a4ff', '#5a2f55', 0.55]} />
+            </>
+          ) : (
+            <>
+              <MilkyWay />
+              <Starfield density={quality.starDensity} />
+              <Sun />
+            </>
+          )}
           {planets.map((b) => {
             // Content attached to this planet by chapters.ts: moons for works, ring markers for a timeline.
             const here = timeline.stops.filter((s) => s.chapter.station === b.id)
             const works = here.find((s) => s.chapter.kind === 'works' && s.chapter.category)
             const history = here.find((s) => s.chapter.kind === 'timeline')
             return (
-              <Planet
+              <PlanetBody
                 key={b.id}
                 def={b}
                 equatorial={
@@ -104,7 +123,7 @@ export function Experience({ timeline, onContextLost }: { timeline: Timeline; on
                     maxVisible={works.chapter.maxVisibleWorks}
                   />
                 )}
-              </Planet>
+              </PlanetBody>
             )
           })}
           <ambientLight intensity={0.03} />

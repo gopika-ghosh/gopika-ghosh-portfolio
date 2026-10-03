@@ -1,3 +1,4 @@
+import { theme } from '../../lib/env'
 import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
@@ -18,6 +19,8 @@ import { bodyAngle } from '../orbits'
  * a tool from content/skills.ts. They ride the belt (same rotation as AsteroidBelt),
  * tumble slowly, and their labels fade in only while the skills chapter is active.
  */
+const CLAY_ROCKS = ['#f7a1c4', '#a7d8ff', '#ffd27a', '#b9a6ff', '#9fe3c1', '#ffb08a']
+
 export function SkillRocks({ chapterIndex }: { chapterIndex: number }) {
   const group = useRef<Group>(null)
   const def = bodies.asteroids
@@ -107,7 +110,11 @@ export function SkillRocks({ chapterIndex }: { chapterIndex: number }) {
       {rocks.map((r, i) => (
         <group key={r.name} position={r.pos} ref={(el) => void (meshes.current[i] = el)}>
           <mesh geometry={geometry} scale={r.size}>
-            <meshStandardMaterial color="#9a8a78" roughness={0.9} emissive="#2b1b0e" emissiveIntensity={0.5} />
+            {theme === 'clay' ? (
+              <meshStandardMaterial color={CLAY_ROCKS[i % CLAY_ROCKS.length]} roughness={0.75} />
+            ) : (
+              <meshStandardMaterial color="#9a8a78" roughness={0.9} emissive="#2b1b0e" emissiveIntensity={0.5} />
+            )}
           </mesh>
           {active && (
             <Html

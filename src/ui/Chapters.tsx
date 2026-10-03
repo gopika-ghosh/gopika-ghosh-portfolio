@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { Stop, Timeline } from '../journey/timeline'
 import type { Chapter } from '../content/types'
 import { site } from '../content/site'
+import { theme } from '../lib/env'
 import { DEFAULT_MAX_VISIBLE_WORKS, sortedWorks } from '../content'
 import { experience } from '../content/experience'
 import { skills, toolLogos } from '../content/skills'
@@ -364,6 +365,8 @@ function Contact({ chapter, index }: { chapter: Chapter; index: number }) {
 
 /** Licence attribution for third-party assets (required by CC BY 4.0). */
 function Credits() {
+  // The clay theme paints its own planets; the texture credit only applies to the real one.
+  if (theme === 'clay') return null
   return (
     <p {...r(5)} className="mt-10 text-[11px] leading-relaxed text-white/35">
       Planet textures by{' '}
