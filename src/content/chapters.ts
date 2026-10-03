@@ -14,7 +14,7 @@ export const chapters: Chapter[] = [
     station: 'system',
     kind: 'intro',
     navLabel: 'Home',
-    heading: 'Gopika',
+    heading: 'Gopika Ghosh',
     intro: 'UI/UX Designer · Graphic Designer · Video Editor',
     dwell: 1.2,
   },

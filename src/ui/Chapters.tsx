@@ -148,12 +148,21 @@ function Intro() {
     <div className="pointer-events-auto">
       <div className="intro-scrim relative">
       {/* Letters rise in one by one; screen readers get the plain name. */}
-      <h1 id="home-heading" aria-label={site.name} className="font-display text-7xl leading-none font-semibold md:text-[9rem]">
-        {[...site.name].map((ch, i) => (
-          <span key={i} aria-hidden="true" className="reveal-letter" style={{ '--i': i } as CSSProperties}>
-            {ch}
-          </span>
-        ))}
+      <h1 id="home-heading" aria-label={site.name} className="font-display text-6xl leading-[0.95] font-semibold md:text-[8rem]">
+        {/* Letters of each word stay together, so a long name wraps between words, never inside one. */}
+        {site.name.split(' ').map((word, w, words) => {
+          const offset = words.slice(0, w).join('').length
+          return (
+            <span key={w} className="inline-block whitespace-nowrap" aria-hidden="true">
+              {[...word].map((ch, i) => (
+                <span key={i} className="reveal-letter" style={{ '--i': offset + i } as CSSProperties}>
+                  {ch}
+                </span>
+              ))}
+              {w < words.length - 1 && <span className="inline-block w-[0.28em]" />}
+            </span>
+          )
+        })}
       </h1>
       <p
         {...r(4)}

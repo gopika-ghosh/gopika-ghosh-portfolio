@@ -3,10 +3,12 @@
  * Sourced from Gopika's résumé; lines marked TODO are still placeholders.
  */
 export const site = {
-  /** Shown large on the opening shot and in the navigation. */
-  name: 'Gopika',
-  /** Full name, used for search engines and link previews. */
+  /** Shown large on the opening shot, in the navigation, and to search engines. */
+  name: 'Gopika Ghosh',
+  /** Full name (kept for search engines and link previews). */
   fullName: 'Gopika Ghosh',
+  /** First name, for friendly copy. */
+  firstName: 'Gopika',
   /** Your live address (no trailing slash). Used for search engines and link previews. TODO: set the real domain. */
   url: 'https://gopika.design',
   /** One or two sentences for search results and link previews (~155 characters). */
