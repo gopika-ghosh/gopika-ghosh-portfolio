@@ -9,8 +9,11 @@ export const site = {
   fullName: 'Gopika Ghosh',
   /** First name, for friendly copy. */
   firstName: 'Gopika',
-  /** Your live address (no trailing slash). Used for search engines and link previews. TODO: set the real domain. */
-  url: 'https://gopika.design',
+  /**
+   * Your live address (no trailing slash), for search engines and link previews.
+   * Empty = the Vercel production address (your-project.vercel.app). Set it if you add a custom domain.
+   */
+  url: '' as string,
   /** One or two sentences for search results and link previews (~155 characters). */
   description:
     'Gopika Ghosh is a UI/UX and graphic designer creating web, mobile and admin interfaces, brand identities and marketing design. Explore her work as a journey through a 3D solar system.',

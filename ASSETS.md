@@ -39,7 +39,7 @@ The script (`scripts/build-textures.mjs`) resizes each map and encodes it to **K
 
 ## Clay theme (default)
 
-Everything in the toy universe is generated in code: lumpy clay planets, the rocket, clouds, stars and asteroids. The planets' "paint jobs" (continents, bands, craters) are defined in `src/scene/clay/painters.ts` and pre-rendered to small WebP textures in `public/textures/clay/` (≈150 KB total) by `npm run clay-textures`. Re-run it after editing a painter.
+Everything in the toy universe is generated in code: lumpy clay planets, the star guide, clouds, stars and asteroids. The planets' "paint jobs" (continents, bands, craters) are defined in `src/scene/clay/painters.ts` and pre-rendered to small WebP textures in `public/textures/clay/` (≈150 KB total) by `npm run clay-textures`. Re-run it after editing a painter.
 
 ## Fonts
 

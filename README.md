@@ -20,12 +20,13 @@ Useful URL flags for checking special cases: `?reduced` (reduced-motion version)
 Everything you'll want to change is in `src/content/`. **See [CONTENT_GUIDE.md](CONTENT_GUIDE.md)** for adding or removing projects, images, videos and contact details.
 
 Before launch, check these:
-- `src/content/site.ts`: name, `url` (your real domain), email, socials, bio, photo
+- `src/content/site.ts`: name, email, socials, bio, photo (`url` can stay empty on Vercel; see Deploy)
 - `src/content/works.ts`: client posters and reels come from `assets-src/works.xlsx` (see CONTENT_GUIDE); Logo Design and POKAK creatives still use placeholder images
 - `src/content/guide.ts`: what the little star says at each stop (and her reactions)
-- `src/content/testimonials.ts`: the quotes and awards are **fictional placeholders**, so replace or empty them
-- `public/gopika-resume.pdf`: your CV
+- `src/content/testimonials.ts`: empty for now; add real quotes or awards here and the section appears
+- Résumé download: hidden (`resumeUrl: ''`) because the current PDF includes a phone number. Put a version without it in `public/` and set `resumeUrl`
 - After changing your name or title, run `npm run og-image` (with `npm run dev` running) to refresh the link-preview image
+- Run `npx prettier --write <file>` to format; `.prettierrc.json` holds the project style
 
 ## Deploy
 
@@ -36,7 +37,9 @@ Before launch, check these:
 2. On [vercel.com](https://vercel.com) choose **Add New → Project** and import the repository.
 3. Vercel detects Vite. Keep the defaults (`npm run build`, output `dist`) and press **Deploy**.
 
-`vercel.json` already sets long-term caching for the hashed assets and textures.
+Or from your machine: `npx vercel` (preview) and `npx vercel --prod` (live).
+
+The link-preview, canonical and sitemap addresses use Vercel's production address automatically while `url` in `site.ts` is empty. `vercel.json` sets caching: a year for hashed assets, a day for textures.
 
 ### Netlify
 1. Push this repository to GitHub.
@@ -46,7 +49,7 @@ Before launch, check these:
 Or deploy straight from your machine: `npx netlify-cli deploy --prod --dir=dist` (after `npm run build`).
 
 ### Custom domain
-Add the domain in your host's dashboard, then set the same address as `url` in `src/content/site.ts` and rebuild. It's used for search engines and link previews.
+Add the domain in your host's dashboard, then set the same address as `url` in `src/content/site.ts` and redeploy. It's used for search engines and link previews (and is required on Netlify, which has no automatic address).
 
 ## Scripts
 
@@ -72,4 +75,4 @@ Add the domain in your host's dashboard, then set the same address as `url` in `
 - **No WebGL:** a complete 2D version of the site with the same content.
 - **Accessibility and SEO:** all content is real HTML, keyboard-navigable (arrow keys / space step between stops, Esc closes panels), with full meta tags and a no-JavaScript fallback. Lighthouse scores 100 for accessibility, best practices and SEO.
 
-Credits: clay planets, rocket and stars are generated in code; fonts are Fredoka and Nunito (SIL OFL); tool logos from Devicon (MIT), Simple Icons (CC0) and Wikimedia Commons (public domain). The realistic theme uses planet textures by [Solar System Scope](https://www.solarsystemscope.com/textures/) (CC BY 4.0).
+Credits: clay planets, the star guide and the stars are generated in code; fonts are Fredoka and Nunito (SIL OFL); tool logos from Devicon (MIT), Simple Icons (CC0) and Wikimedia Commons (public domain). The realistic theme uses planet textures by [Solar System Scope](https://www.solarsystemscope.com/textures/) (CC BY 4.0).

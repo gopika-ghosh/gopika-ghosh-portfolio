@@ -155,5 +155,5 @@ export const embeds: Record<string, string[]> = {
   ],
 }
 
-/** Projects that include AI-generated video (tagged in the panel). */
+/** Projects that include AI-generated video (for reference; works.ts tags them 'AI video'). */
 export const aiVideo = new Set(['inhavo-reels', 'metg-reels', 'nexa-reels', 'weforyou-reels'])

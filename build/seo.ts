@@ -17,7 +17,16 @@ import { awards, testimonials } from '../src/content/testimonials'
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-const abs = (path: string) => (/^https?:/.test(path) ? path : `${site.url}${path}`)
+/**
+ * The live address: site.url when set (e.g. a custom domain); otherwise, on Vercel, the
+ * project's production address, which Vercel provides at build time.
+ */
+// (Read via globalThis: the project doesn't ship Node's type definitions.)
+const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {}
+const vercelUrl = env.VERCEL_PROJECT_PRODUCTION_URL
+const siteUrl = site.url || (vercelUrl ? `https://${vercelUrl}` : 'http://localhost:4173')
+
+const abs = (path: string) => (/^https?:/.test(path) ? path : `${siteUrl}${path}`)
 
 function head() {
   const title = `${site.fullName} — ${site.title}`
@@ -25,7 +34,7 @@ function head() {
     '@context': 'https://schema.org',
     '@type': 'Person',
     name: site.fullName,
-    url: site.url,
+    url: siteUrl,
     image: abs(site.photo),
     jobTitle: site.title,
     description: site.description,
@@ -35,12 +44,12 @@ function head() {
   return `
     <title>${esc(title)}</title>
     <meta name="description" content="${esc(site.description)}" />
-    <link rel="canonical" href="${site.url}/" />
+    <link rel="canonical" href="${siteUrl}/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="${esc(site.name)}" />
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(site.description)}" />
-    <meta property="og:url" content="${site.url}/" />
+    <meta property="og:url" content="${siteUrl}/" />
     <meta property="og:image" content="${abs(site.ogImage)}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -117,11 +126,11 @@ export function seo(): Plugin {
         .replace('<div id="root"></div>', `<div id="root">${shell()}</div>\n    ${noscript()}`)
     },
     generateBundle() {
-      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: `User-agent: *\nAllow: /\n\nSitemap: ${site.url}/sitemap.xml\n` })
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n` })
       this.emitFile({
         type: 'asset',
         fileName: 'sitemap.xml',
-        source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${site.url}/</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>\n</urlset>\n`,
+        source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${siteUrl}/</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>\n</urlset>\n`,
       })
     },
   }

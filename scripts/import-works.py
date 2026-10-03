@@ -79,7 +79,7 @@ def main() -> None:
         lines.append('  ],')
     lines.append('}')
     lines.append('')
-    lines.append('/** Projects that include AI-generated video (tagged in the panel). */')
+    lines.append('/** Projects that include AI-generated video (for reference; works.ts tags them 'AI video'). */')
     lines.append('export const aiVideo = new Set([' + ', '.join(f"'{w}'" for w in sorted(ai)) + '])')
     lines.append('')
     open('src/content/embeds.ts', 'w', encoding='utf-8').write('\n'.join(lines))
