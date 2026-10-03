@@ -97,28 +97,6 @@ export function cueBoop(pitch = 1) {
   osc.stop(t + 0.4)
 }
 
-/** A rising whoosh, for the rocket taking off. */
-export function cueWhoosh() {
-  if (!ctx || !enabled) return
-  const t = ctx.currentTime
-  const src = ctx.createBufferSource()
-  src.buffer = noiseBuffer(ctx, 1.2)
-  const band = ctx.createBiquadFilter()
-  band.type = 'bandpass'
-  band.Q.value = 1.4
-  band.frequency.setValueAtTime(300, t)
-  band.frequency.exponentialRampToValueAtTime(2400, t + 0.9)
-  const g = ctx.createGain()
-  g.gain.setValueAtTime(0, t)
-  g.gain.linearRampToValueAtTime(0.05, t + 0.15)
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1)
-  src.connect(band).connect(g)
-  g.connect(master!)
-  g.connect(reverbSend!)
-  src.start(t)
-  src.stop(t + 1.2)
-}
-
 /** A gentle two-note swell, for opening a project. */
 export function cueOpen() {
   if (!ctx || !enabled) return

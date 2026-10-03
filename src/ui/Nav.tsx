@@ -5,8 +5,6 @@ import { locate, type Segment, type Timeline } from '../journey/timeline'
 import { glideTo } from '../journey/useSmoothScroll'
 import { isModalOpen, useUi } from '../state/uiStore'
 import { SoundToggle } from './SoundToggle'
-import { Stardust } from './Stardust'
-import { theme } from '../lib/env'
 import { useDialog } from './useDialog'
 
 const seg: Segment = { from: 0, to: 0, t: 0 }
@@ -66,7 +64,6 @@ export function Nav({ timeline }: { timeline: Timeline }) {
         style={{ marginTop: 'env(safe-area-inset-top)' }}
         className={`fixed top-4 right-4 z-30 flex items-center gap-2 md:top-6 md:right-8 ${fade}`}
       >
-        {theme === 'clay' && <Stardust total={timeline.stops.length} />}
         <SoundToggle />
         <button
           type="button"

@@ -9,6 +9,9 @@ import { cachedClayBall, clayGrain, clayMapUrl, prepClayMap } from './clayKit'
 import { painters, ringStripes } from './painters'
 import { ClayClouds } from './ClayClouds'
 import { cueBoop } from '../../audio/ambient'
+import { journeyChapters } from '../../content'
+import { fill, guide } from '../../content/guide'
+import { useUi } from '../../state/uiStore'
 
 interface Props {
   def: BodyDef
@@ -69,6 +72,10 @@ export function ClayPlanet({ def, children, equatorial }: Props) {
     squish.current.v -= 2.2
     // Each planet boops at its own pitch: big ones low, small ones high.
     cueBoop(MathUtils.clamp(1.6 / Math.sqrt(def.radius), 0.6, 2))
+    // The guide names it (and what of Gopika's lives there).
+    const chapter = journeyChapters.find((c) => c.station === def.id)
+    const name = def.id[0].toUpperCase() + def.id.slice(1)
+    useUi.getState().say(fill(chapter ? guide.pokeHome : guide.pokeOther, { name, heading: chapter?.heading ?? '' }))
   }
 
   return (
@@ -78,7 +85,8 @@ export function ClayPlanet({ def, children, equatorial }: Props) {
           <meshPhysicalMaterial
             map={map}
             roughness={0.72}
-            bumpMap={grain}
+            // Earth's white ice caps show the grain pinching at the poles; its relief carries the clay look.
+            bumpMap={def.id === 'earth' ? null : grain}
             bumpScale={0.55}
             sheen={0.7}
             sheenRoughness={0.85}

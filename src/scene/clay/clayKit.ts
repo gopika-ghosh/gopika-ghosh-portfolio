@@ -70,6 +70,22 @@ export function clayBall({
   }
   geo.setAttribute('color', new BufferAttribute(colors, 3))
   geo.computeVertexNormals()
+  // The UV seam and the poles are made of split vertices that share a position; average
+  // their normals, or the poles shade with radial streaks.
+  const normal = geo.attributes.normal
+  const sums = new Map<string, Vector3>()
+  const key = (i: number) => `${pos.getX(i).toFixed(4)},${pos.getY(i).toFixed(4)},${pos.getZ(i).toFixed(4)}`
+  for (let i = 0; i < pos.count; i++) {
+    const k = key(i)
+    const n = sums.get(k) ?? sums.set(k, new Vector3()).get(k)!
+    n.x += normal.getX(i)
+    n.y += normal.getY(i)
+    n.z += normal.getZ(i)
+  }
+  for (let i = 0; i < pos.count; i++) {
+    const n = sums.get(key(i))!.clone().normalize()
+    normal.setXYZ(i, n.x, n.y, n.z)
+  }
   return geo
 }
 

@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { Stop, Timeline } from '../journey/timeline'
 import type { Chapter } from '../content/types'
 import { site } from '../content/site'
+import { guide } from '../content/guide'
 import { theme } from '../lib/env'
 import { DEFAULT_MAX_VISIBLE_WORKS, sortedWorks } from '../content'
 import { experience } from '../content/experience'
@@ -131,6 +132,8 @@ function Panel({ chapter, index, wide, children }: { chapter: Chapter; index: nu
       <p {...r(2)} className="mt-4 text-[15px] text-white/70 md:text-lg">
         {chapter.intro}
       </p>
+      {/* The star guide's line for this stop, for screen readers (the bubble is visual only). */}
+      {guide.stops[chapter.id] && <p className="sr-only">{guide.stops[chapter.id]}</p>}
       {children && (
         <div {...r(3)} className="mt-6 md:mt-8">
           {children}

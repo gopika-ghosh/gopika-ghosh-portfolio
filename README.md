@@ -1,6 +1,6 @@
 # Heliocentric — Gopika's portfolio
 
-A 3D solar-system portfolio in a hand-made **clay "toy universe"** style. Gopika is the Sun; her work orbits around her. Scrolling flies the camera outward through the planets, each project is a moon wrapped in its own image, and a tiny clay rocket rides along — click it to fly to the next stop, and it collects a star of **stardust** at every stop you visit (collect all nine for a surprise).
+A 3D solar-system portfolio in a hand-made **clay "toy universe"** style. Gopika is the Sun; her work orbits around her. Scrolling flies the camera outward through the planets, each project is a moon wrapped in its own image, and a little clay star — Gopika's guide — floats along, explaining each stop in her own words and reacting to what you explore.
 
 The original cinematic, photo-real version lives on the **`realistic`** git branch (and is still reachable here with `?theme=real`).
 
@@ -22,6 +22,7 @@ Everything you'll want to change is in `src/content/`. **See [CONTENT_GUIDE.md](
 Before launch, check these:
 - `src/content/site.ts`: name, `url` (your real domain), email, socials, bio, photo
 - `src/content/works.ts`: graphic and video projects still use placeholder images; add her artwork and Instagram post links
+- `src/content/guide.ts`: what the little star says at each stop (and her reactions)
 - `src/content/testimonials.ts`: the quotes and awards are **fictional placeholders**, so replace or empty them
 - `public/gopika-resume.pdf`: your CV
 - After changing your name or title, run `npm run og-image` (with `npm run dev` running) to refresh the link-preview image

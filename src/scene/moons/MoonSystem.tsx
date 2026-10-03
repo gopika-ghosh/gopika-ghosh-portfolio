@@ -217,12 +217,12 @@ function Moon({ slot, category, map, isWork, active, chapterIndex, planetRadius,
                   if (useUi.getState().hovered === key) useUi.getState().setHovered(null)
                 }}
                 aria-label={work ? work.title : 'View all projects'}
-                className="group flex items-center gap-2 rounded-full border border-white/10 bg-black/45 p-1 whitespace-nowrap backdrop-blur-sm transition-colors hover:border-sun/60 sm:pr-3"
+                className="group flex w-max items-center gap-2 rounded-full border border-white/10 bg-black/45 p-1 whitespace-nowrap backdrop-blur-sm transition-colors hover:border-sun/60 sm:pr-3"
               >
                 {work ? (
-                  <img src={work.thumbnail} alt="" className="size-7 rounded-full object-cover ring-1 ring-sun/40" />
+                  <img src={work.thumbnail} alt="" className="size-7 shrink-0 rounded-full object-cover ring-1 ring-sun/40" />
                 ) : (
-                  <span className="grid size-7 place-items-center rounded-full bg-sun/15 text-[11px] text-sun ring-1 ring-sun/40">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-sun/15 text-[11px] text-sun ring-1 ring-sun/40">
                     +{moreCount}
                   </span>
                 )}

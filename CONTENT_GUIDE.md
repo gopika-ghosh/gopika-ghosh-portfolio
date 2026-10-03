@@ -12,6 +12,7 @@ After editing, run `npm run dev` and open http://localhost:5173. Changes appear 
 | `experience.ts` | Work history (shown on Saturn's rings) |
 | `skills.ts` | Skills and tools (the tools float as labelled asteroids) |
 | `testimonials.ts` | Quotes and awards (shown at Neptune) |
+| `guide.ts` | What the little star guide says: one line per stop, plus reactions and tips |
 
 > Everything currently in these files is **placeholder** content. The people, quotes and awards in `testimonials.ts` are fictional, so replace or remove them before launch.
 
@@ -131,6 +132,16 @@ Your photo is `site.photo` (currently `public/images/gopika.webp`). Portrait ori
 - **Skills:** the labelled tool rocks only appear when the skills chapter is at the `asteroids` station. Choose which skill group floats with `floatingSkillGroup` in `skills.ts`.
 - **Testimonials:** while `testimonials.ts` has no quotes and no awards, that stop is skipped automatically and the camera flies past Neptune. Add one entry and the stop returns.
 - **Splitting Uranus and Neptune:** to give testimonials and awards separate stops, add a chapter with `station: 'uranus'`.
+
+## The star guide's lines
+
+The little clay star is Gopika, showing visitors around. Her lines are in `guide.ts`:
+
+- `stops`: one line per stop, keyed by the chapter `id` from `chapters.ts`. If you add a chapter, add a line for it here (or leave it out and she'll stay quiet there).
+- `openWork`, `pokeHome`, `toolUsed`…: short reactions. Words in `{braces}` are filled in automatically, for example `{title}` becomes the project's name.
+- `tips`: what she says when someone taps her.
+
+Keep each line to one or two short sentences, because they're typed into a small speech bubble. Screen readers also read each stop's line.
 
 ## Contact details and résumé
 
