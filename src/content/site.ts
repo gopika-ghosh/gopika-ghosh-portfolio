@@ -14,9 +14,9 @@ export const site = {
    * Empty = the Vercel production address (your-project.vercel.app). Set it if you add a custom domain.
    */
   url: '' as string,
-  /** One or two sentences for search results and link previews (~155 characters). */
+  /** One or two sentences for search results and link previews (~155 characters), in your own voice. */
   description:
-    'Gopika Ghosh is a UI/UX and graphic designer creating web, mobile and admin interfaces, brand identities and marketing design. Explore her work as a journey through a 3D solar system.',
+    "Hi, I'm Gopika Ghosh: a UI/UX designer, graphic designer and video editor. Fly through my little universe to explore the websites, brands and reels I've made.",
   /** Preview image for links shared on social media (1200×630, in /public). */
   ogImage: '/og-image.jpg',
   /** Shown under your name on the opening shot. */
