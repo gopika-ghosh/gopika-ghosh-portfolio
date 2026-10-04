@@ -340,15 +340,15 @@ function WorksGrid({ chapter }: { chapter: Chapter }) {
           <button
             type="button"
             onClick={() => openWork(w.id)}
-            className="group block w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] text-left transition hover:border-sun/50"
+            className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] text-left transition hover:border-sun/50"
           >
             <img src={w.thumbnail} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
             <span className="block p-4">
               <span className="flex items-baseline justify-between gap-3">
-                <span className="font-display text-xl leading-tight">{w.title}</span>
-                <span className="text-xs text-white/40">{w.year}</span>
+                <span className="line-clamp-2 min-h-[2lh] font-display text-xl leading-tight">{w.title}</span>
+                <span className="shrink-0 text-xs text-white/40">{w.year}</span>
               </span>
-              <span className="mt-1.5 block text-sm text-white/60">{w.summary}</span>
+              <span className="mt-1.5 line-clamp-2 min-h-[2lh] text-sm text-white/60">{w.summary}</span>
             </span>
           </button>
         </li>
