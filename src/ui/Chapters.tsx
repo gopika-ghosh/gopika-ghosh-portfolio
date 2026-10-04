@@ -53,8 +53,8 @@ function ChapterSection({ stop, onOverflow }: { stop: Stop; onOverflow?: (index:
       ? 'items-start justify-center pt-[14vh] text-center'
       : chapter.kind === 'contact'
         ? 'items-end justify-center pb-[10vh] text-center md:pb-[10vh]'
-        : // Phones: the planet keeps the top of the screen; the text sits below it.
-          'items-end pt-[42svh] pb-10 md:items-center md:pt-0 md:pb-0'
+        : // Phones: the planet keeps the top of the screen; the text sits below it, clear of the star.
+          'items-end pt-[42svh] pb-16 md:items-center md:pt-0 md:pb-0'
 
   // Content reveals (staggered) when this becomes the active stop, and fades as the camera leaves.
   const shown = useUi((s) => s.ready && s.active === stop.index)

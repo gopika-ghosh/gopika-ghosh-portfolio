@@ -51,10 +51,11 @@ export function Nav({ timeline }: { timeline: Timeline }) {
 
   return (
     <>
-      {/* Phones: a fade behind the top bar, so content scrolling under it doesn't clash. */}
+      {/* Phones: a frosted top bar, so long chapters scrolling under it pass cleanly behind. */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none fixed inset-x-0 top-0 z-20 h-24 bg-gradient-to-b from-[#07051a] via-[#07051a]/80 to-transparent md:hidden ${fade}`}
+        style={{ height: 'calc(4.5rem + env(safe-area-inset-top))' }}
+        className={`pointer-events-none fixed inset-x-0 top-0 z-20 border-b border-white/[0.07] bg-[#07051a]/75 backdrop-blur-md md:hidden ${fade}`}
       />
 
       {/* Home mark */}
