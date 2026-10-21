@@ -211,10 +211,10 @@ export const works: Work[] = [
     year: 2026,
     summary: 'Logos and brand marks, drawn in Adobe Illustrator and Photoshop.',
     description:
-      'Logo design for brands and businesses, created in Adobe Illustrator and Adobe Photoshop, including the identity for Nexa Electromechanical, an MEP and HVAC contractor in Bahrain.',
-    // Images: logos from assets-src/*-logo.jpeg on a black card (01 = Nexa).
-    // TODO: add Wellness with Wafa as 02 once there's a version with the "Wellness" lettering intact.
-    ...img('logo-design', 1),
+      'Logo design for brands and businesses, created in Adobe Illustrator and Adobe Photoshop, including identities for Nexa Electromechanical, an MEP and HVAC contractor in Bahrain, and the wellness brand Wellness with Wafa.',
+    // Images: logos from assets-src/ on a card matching each logo (01 = Nexa on black,
+    // 02 = Wellness with Wafa on cream).
+    ...img('logo-design', 2),
     tools: ['Adobe Illustrator', 'Adobe Photoshop'],
     tags: ['Logo', 'Brand identity'],
   },
