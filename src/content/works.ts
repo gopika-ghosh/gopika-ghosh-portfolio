@@ -208,7 +208,7 @@ export const works: Work[] = [
     title: 'Logo Design',
     category: 'graphic',
     role: 'Graphic Designer',
-    year: 2025,
+    year: 2026,
     summary: 'Logos and brand marks, drawn in Adobe Illustrator and Photoshop.',
     description:
       'Logo design for brands and businesses, created in Adobe Illustrator and Adobe Photoshop, including the identity for Nexa Electromechanical, an MEP and HVAC contractor in Bahrain.',
