@@ -136,7 +136,8 @@ export const works: Work[] = [
     role: 'Graphic Designer',
     year: 2026,
     summary: 'Bilingual social creatives for a Kerala–UK services brand.',
-    description: 'Social media posters for Regal Johns International, in English and Malayalam, for audiences in Kerala and the UK.',
+    description:
+      'Social media posters for Regal Johns International, in English and Malayalam, for audiences in Kerala and the UK.',
     ...img('regal-creatives', 4),
     instagram: { profile: ig.regal },
     featured: true,
@@ -185,7 +186,7 @@ export const works: Work[] = [
     role: 'Graphic Designer',
     year: 2026,
     summary: 'Launch and social creatives for a job-search app.',
-    description: "Social media creatives for Flevv, a job-search app.",
+    description: 'Social media creatives for Flevv, a job-search app.',
     ...img('flev-creatives', 3),
     instagram: { profile: ig.flev },
     tags: ['Social media', 'App'],
@@ -209,9 +210,11 @@ export const works: Work[] = [
     role: 'Graphic Designer',
     year: 2025,
     summary: 'Logos and brand marks, drawn in Adobe Illustrator and Photoshop.',
-    description: 'Logo design for brands and businesses, created in Adobe Illustrator and Adobe Photoshop.',
-    // TODO: placeholder images — add her logo work to public/images/works/logo-design/.
-    ...img('logo-design', 2),
+    description:
+      'Logo design for brands and businesses, created in Adobe Illustrator and Adobe Photoshop, including the identity for Nexa Electromechanical, an MEP and HVAC contractor in Bahrain.',
+    // Images: logos from assets-src/*-logo.jpeg on a black card (01 = Nexa).
+    // TODO: add Wellness with Wafa as 02 once there's a version with the "Wellness" lettering intact.
+    ...img('logo-design', 1),
     tools: ['Adobe Illustrator', 'Adobe Photoshop'],
     tags: ['Logo', 'Brand identity'],
   },

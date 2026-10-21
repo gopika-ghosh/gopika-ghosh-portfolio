@@ -21,6 +21,9 @@ export const embeds: Record<string, string[]> = {
     'https://www.instagram.com/reel/Dd845lmj3dv/',
   ],
   'nexa-creatives': [
+    'https://www.instagram.com/p/DejBIvEDLwJ/',
+    'https://www.instagram.com/p/DeeGPnaoLgB/',
+    'https://www.instagram.com/p/DeZLG25jK65/',
     'https://www.instagram.com/p/Dd5iV5jidEO/',
     'https://www.instagram.com/p/Dd1OTwfCMoD/',
     'https://www.instagram.com/p/Ddv0uIvCe3u/',
